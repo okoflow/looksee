@@ -1,0 +1,1 @@
+"""Outbound HTTP adapters."""

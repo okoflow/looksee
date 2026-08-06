@@ -1,0 +1,152 @@
+---
+title: Model catalog
+description: Bundle manifests, event mapping, and supported ONNX signatures.
+---
+
+LookSee discovers ONNX models from the runtime filesystem. The API uses the catalog for
+workflow editing and validation; inference uses the same bundle to load labels and create
+the ONNX session.
+
+## Bundle layout
+
+Each model has one directory under `MODELS_DIR`:
+
+```text
+models/
+└── <model-id>/
+    ├── model.onnx
+    └── manifest.json
+```
+
+Both files are required. The API ignores incomplete or invalid bundles and logs the
+reason. The model ID is the directory name and must:
+
+- Contain only lowercase ASCII letters, digits, `_`, or `-`.
+- Contain between 1 and 64 characters.
+- Remain immutable after the model is discovered.
+
+Use a new ID when weights, labels, or metadata change, for example
+`dfine-m-fire-v2`. The API and inference cache a discovered ID for the life of their
+processes; replacing files in place does not update active sessions reliably.
+
+Model files are ignored by Git and mounted read-only into the API and inference
+containers.
+
+## Manifest schema
+
+```json
+{
+  "name": "D-FINE-M Fire and Smoke",
+  "labels": ["fire", "other", "smoke"],
+  "recommended_confidence_threshold": 0.3,
+  "events": {
+    "fire": "FIRE_DETECTED",
+    "other": null
+  }
+}
+```
+
+| Field | Required | Meaning |
+| --- | --- | --- |
+| `labels` | Yes | Class ID to unique, non-empty label mapping |
+| `name` | No | Display name; otherwise derived from the model ID |
+| `recommended_confidence_threshold` | No | Value from 0 to 1 applied when the model is selected in the editor |
+| `events` | No | Label-to-event override; `null` suppresses that label |
+
+Unknown fields are rejected. Every key in `events` must exist in `labels`.
+
+`labels` may be an ordered array, where the array index is the class ID, or a JSON object
+with contiguous zero-based integer keys:
+
+```json
+{
+  "labels": {
+    "0": "fire",
+    "1": "other",
+    "2": "smoke"
+  }
+}
+```
+
+Labels must be unique. Inference reports an error if the model emits a class ID that is
+absent from the manifest.
+
+## Event mapping
+
+The API converts each detected label into a semantic workflow event:
+
+1. If `events` contains the label, use its configured value.
+2. If the configured value is `null`, do not create an event for that label.
+3. Otherwise, uppercase the label, replace non-alphanumeric runs with `_`, and append
+   `_DETECTED` when needed.
+
+For example, `space-occupied` becomes `SPACE_OCCUPIED_DETECTED`. Event kinds must start
+with an uppercase letter, contain only uppercase letters, digits, and underscores, and be
+at most 64 characters.
+
+The `GET /models` response exposes the resolved display name, classes, event kinds, and
+recommended threshold. The web application refreshes this catalog while it is open, so a
+new model ID can appear without rebuilding the frontend.
+
+## Supported ONNX signatures
+
+Inference selects an adapter from input and output tensor names, types, and ranks. It
+never branches on a model ID. The current registry supports two D-FINE contracts.
+
+### D-FINE deploy export
+
+```text
+inputs
+  images             float tensor, rank 4, three channels, static square size
+  orig_target_sizes  int64 tensor, rank 2, final dimension 2
+
+outputs
+  labels             int64 tensor, rank 2
+  boxes              float tensor, rank 3, final dimension 4
+  scores             float tensor, rank 2
+```
+
+The adapter preserves aspect ratio with a centered black letterbox, runs decoded XYXY
+output, and maps boxes back to original-frame pixels.
+
+### D-FINE raw export
+
+```text
+input
+  one float tensor   rank 4, three channels, static square size
+
+outputs
+  logits             float tensor, rank 3
+  pred_boxes         float tensor, rank 3, final dimension 4
+```
+
+The adapter resizes the frame, applies sigmoid scores, selects the best class per query,
+and converts normalized CXCYWH boxes to original-frame pixel XYXY boxes.
+
+The catalog validates only the directory and manifest. Inference validates the ONNX
+signature when a workflow first requests the model. An unsupported or ambiguous signature
+puts that camera worker in the error state and records the signature in inference logs.
+
+## Runtime behavior
+
+- A detect node selects `model_id`, confidence threshold, event kinds, and checks per
+  second.
+- Different cameras can use different models concurrently.
+- Cameras using the same model ID share one lazily loaded ONNX session per inference
+  process.
+- Provider priority is CUDA, when the installed runtime exposes it, then CPU.
+- Changing model, confidence, checks per second, or source starts a new fenced run.
+- Removing a bundle does not evict an already cached model. Stop dependent workflows and
+  restart services when retiring an ID.
+
+## Add an architecture adapter
+
+1. Add an `OnnxDetectionAdapter` under
+   `apps/inference/src/inference/adapters/onnx/models/`.
+2. Match the complete tensor contract in `supports(signature)`.
+3. Convert output to `supervision.Detections` with pixel XYXY boxes, confidence values,
+   and class IDs.
+4. Register the type in `apps/inference/src/inference/adapters/onnx/registry.py`.
+5. Keep the predicate architecture-specific and model-ID-independent.
+
+See the [inference service guide](https://github.com/okoflow/looksee/blob/main/apps/inference/README.md) for runtime commands.

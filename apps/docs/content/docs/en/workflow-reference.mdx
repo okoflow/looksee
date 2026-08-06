@@ -1,0 +1,114 @@
+---
+title: Workflow reference
+description: Camera sources, node behavior, validation, and actions.
+---
+
+A workflow is a directed graph of camera sources, detection, filters, and actions. Drafts
+are stored in PostgreSQL, while the API validates runtime requirements before a workflow
+is enabled.
+
+## Graph rules
+
+All saved graphs must have unique node and edge IDs, valid edge endpoints, and branch
+metadata only on edges leaving filters. A draft may contain incomplete or disconnected
+nodes.
+
+Every enabled source path must satisfy these rules:
+
+- The reachable graph is acyclic.
+- The source reaches exactly one Detect node.
+- The selected model exists and supports configured events and classes.
+- Every reachable node has its required runtime values.
+
+Each filter routes a match to `if` edges and a non-match to `else` edges. An unlabelled
+outgoing filter edge behaves as `if`.
+
+## Camera sources
+
+MediaMTX normalizes every source to one UUID-named path for inference and browser playback.
+
+| Source | Configuration |
+| --- | --- |
+| RTSP | `rtsp://` or `rtsps://` upstream URL |
+| RTMP | `rtmp://` or `rtmps://` upstream URL |
+| SRT | `srt://` upstream URL |
+| WHEP | Remote `http://`, `https://`, `whep://`, or `wheps://` endpoint |
+| WebRTC | No URL; run the workflow, then publish the browser webcam through WHIP |
+| File | Relative path inside `MEDIA_DIR`; MediaMTX loops it through FFmpeg |
+
+File paths may contain letters, digits, `.`, `_`, `-`, and `/`. They cannot contain
+spaces, hidden path segments, `..`, or shell characters.
+
+## Detection
+
+The Detect node selects:
+
+- A model from the runtime catalog.
+- Event kinds to pass; an empty selection passes every event exposed by the model.
+- A confidence threshold from 0 to 1.
+- An inference rate from 1 to 15 checks per second.
+
+One camera source currently supports one reachable Detect node. See the
+[model catalog](./model-catalog.mdx) for bundle and event rules.
+
+## Filters
+
+| Node | Match condition |
+| --- | --- |
+| If / Else | Event kind, object class, detection count, or maximum confidence satisfies a typed comparison |
+| Zone | At least one detection center lies inside the polygon |
+| Class | At least one detection label belongs to the selected classes |
+| Debounce | The node has not passed an event during its cooldown |
+| Schedule | Event time falls inside the selected hours and weekdays, or outside when inverted |
+| Line crossing | A tracked object crosses a two-point line in the selected direction |
+| Dwell | A tracked object remains inside a polygon for the configured duration |
+| Count | Detection count in an optional polygon is greater than or equal to, or less than or equal to, the threshold |
+| Size | At least one bounding-box area falls inside the configured fraction-of-frame range |
+
+Zone and Dwell nodes require polygons before the workflow can run. Line crossing requires
+two points. An empty Count polygon means the whole frame.
+
+Schedule evaluation uses `EVENT_TIMEZONE`. Debounce, line-crossing, dwell, and global event
+cooldown state are in the API process and reset when it restarts or a new run begins.
+
+## Actions
+
+| Node | Behavior | Requires |
+| --- | --- | --- |
+| Alert | Persists an `info`, `warning`, or `critical` alert | None |
+| Snapshot | Saves the latest JPEG, optionally with boxes, and adds it to downstream context | None |
+| Telegram | Sends text or a snapshot photo | Telegram bot credential |
+| Webhook | Sends the event payload with `GET`, `POST`, or `PUT` | None |
+| Email | Sends a templated message and optional JPEG attachment | SMTP credential |
+| MQTT | Publishes a template or the default JSON payload | MQTT credential |
+| Discord | Sends the event to a channel via webhook | Discord webhook credential |
+
+Integration secrets live on the Credentials page, encrypted at rest; a node references a
+credential by id and enabling the workflow verifies the reference resolves.
+
+Place Snapshot before notification actions that need `snapshot_url` or an attachment.
+Templates support `{kind}`, `{camera_id}`, `{ts}`, `{count}`, and `{snapshot_url}`.
+Invalid placeholders are logged and the original template is delivered unchanged.
+
+An action failure is logged and does not prevent later nodes from running.
+
+## Presets
+
+The creation dialog offers a blank workflow and eight current presets:
+
+- After-hours intrusion
+- People counting
+- Loitering
+- Parking occupancy
+- Queue monitor
+- Helmet compliance
+- Fire and smoke
+- Free parking spaces
+
+Presets create editable drafts, not ready-to-run deployments. Every preset leaves the
+model unselected. Configure its camera, model, required zones or lines, and any external
+action destinations before you run it.
+
+Helmet, fire and smoke, and free-parking presets prefill semantic event kinds. The chosen
+model must expose those kinds. Other presets leave event selection empty so you can choose
+events from the installed model.

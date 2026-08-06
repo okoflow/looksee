@@ -1,0 +1,204 @@
+---
+title: Architecture
+description: Service boundaries, data flow, desired state, and consistency guarantees.
+---
+
+LookSee separates media transport, perception, workflow policy, and presentation. Each
+service owns one boundary and communicates through explicit HTTP, WebSocket, MediaMTX, or
+Pydantic contracts.
+
+## System context
+
+```text
+Media plane
+
++------------------------------------------------+
+|    RTSP / RTMP / SRT / WHEP / file / webcam    |
++------------------------+-----------------------+
+                         |
+                         v
+                 +-------+--------+
+                 |    MediaMTX    |
+                 +-------+--------+
+                         |
+               +---------+---------+
+               | RTSP              | WHEP
+               v                   v
+       +-------+-------+   +-------+-------+
+       |   inference   |   |  web browser  |
+       +---------------+   +---------------+
+
+Control and event plane
+
++-----------+   +--------+   +-----+       HTTP / WebSocket       +-------------+
+| inference |<->| Valkey |<->| API |<---------------------------->| web browser |
++-----------+   +--------+   +--+--+                              +-------------+
+                                |
+                     +----------+----------+
+                     | SQL (read/write)    | actions
+                     v                     v
+              +------+------+   +----------+----------+
+              | PostgreSQL  |   | alerts/integrations |
+              +-------------+   +---------------------+
+```
+
+MediaMTX gives every camera a stable UUID path. Pull sources are proxied on demand,
+browser WebRTC sources publish through WHIP, and local files run as looped streams. Both
+inference and the browser consume the normalized MediaMTX path instead of the original
+source.
+
+## Service boundaries
+
+| Component | Owns | Does not own |
+| --- | --- | --- |
+| `apps/api` | Workflows, graph validation and execution, camera desired state, model catalog, events, actions, alerts, realtime fan-out | Video decoding and ONNX inference |
+| `apps/inference` | Camera workers, frame sampling, ONNX sessions and adapters, confidence filtering, ByteTrack, detection output | Workflow policy and delivery actions |
+| `apps/studio` | Workflow editing, runtime configuration, live playback, overlays, event and alert presentation | Durable state and server-side validation |
+| `packages/shared` | API-to-inference wire models and the model manifest schema | Application use cases |
+| MediaMTX | Stream ingest, protocol normalization, WHIP publishing, and WHEP playback | Detection and workflow state |
+| PostgreSQL | Durable workflows, projected cameras, desired commands, runtime revisions, and alerts | Transient frames |
+| Valkey | Commands, worker events, detection frames, and expiring latest JPEGs | Durable desired state |
+
+The API follows inward dependencies:
+
+```text
++-------------+     +-------------+     +--------+
+| entrypoints |---->| application |---->| domain |
++-------------+     +------+------+     +--------+
+                           |
+                           v
+                    +------+------+
+                    |  adapters   |
+                    +-------------+
+```
+
+Domain models do not import FastAPI, SQLAlchemy, Redis, or MediaMTX code. Inference has a
+similar application-and-adapter boundary, and model-specific behavior stays behind ONNX
+adapters.
+
+## Workflow lifecycle
+
+A workflow graph is a durable document. Camera rows are projections of its
+`camera_source` nodes and are keyed by workflow and node ID.
+
+Saving a draft always builds a structural graph index. This rejects duplicate node or edge
+IDs, dangling edges, and branch metadata on non-filter nodes. A draft may still contain
+incomplete runtime configuration or disconnected nodes.
+
+Enabling a workflow, or changing the graph of an enabled workflow, adds runtime checks:
+
+- At least one camera source exists.
+- The graph reachable from a source is acyclic.
+- Every source reaches exactly one detect node.
+- Every reachable node has its required runtime fields.
+- The selected model exists in the runtime catalog.
+- Selected event kinds and object classes belong to reachable models.
+
+The API returns a machine-readable HTTP `422` response when one of these checks fails.
+
+## Camera desired state
+
+The API keeps database changes and external side effects separate:
+
+1. Build and validate the graph index.
+2. Reconcile camera rows with source nodes and calculate each source's inference config.
+3. Commit the workflow, cameras, desired start commands, status, and revisions in one
+   transaction.
+4. After commit, update MediaMTX paths and publish inference commands.
+
+The inference config contains only `model_id`, `confidence_threshold`, and
+`inference_fps`. Changing one of these values or the camera source creates a new desired
+run. Editing filters, actions, event selection, labels, or canvas positions preserves an
+otherwise active worker.
+
+Every start or stop advances a camera's monotonic `revision`. Every start also receives a
+new `run_id`:
+
+- Inference ignores commands older than the newest revision it has seen.
+- Targeted stops cannot cancel a different run at the same camera.
+- The API ignores frames and worker events whose workflow, revision, run, or model does not
+  match current desired state.
+
+The API periodically reloads desired state, repairs missing or orphaned MediaMTX paths,
+and republishes commands. Pub/sub delivery can therefore be transient without making it
+the source of truth.
+
+## Detection and event flow
+
+1. A worker resolves its camera's MediaMTX RTSP path.
+2. The model registry loads `models/<model-id>/model.onnx` once and selects an adapter from
+   the ONNX tensor signature.
+3. The worker samples frames at the requested rate, runs inference, filters confidence,
+   attaches ByteTrack IDs, and publishes a `DetectionFrame`.
+4. The API verifies frame provenance against the persisted desired command.
+5. The API uses the model manifest to group labelled detections into semantic event kinds.
+6. The graph executor starts at the originating camera node, evaluates filters, and runs
+   actions along matching branches.
+7. The API sends detections, events, worker status, and alerts to the camera WebSocket room.
+
+Model labels are data. A missing event override becomes a deterministic uppercase
+`*_DETECTED` kind, while a `null` override suppresses event creation for that label. See
+the [model catalog reference](./model-catalog.mdx) for the exact rules.
+
+## Graph execution
+
+`WorkflowGraphIndex` builds forward and reverse adjacency once for validation and runtime
+execution. Each node executes at most once per derived event, even when branches converge.
+
+Every filter has two outcomes:
+
+- A match follows edges marked `if`.
+- A non-match follows edges marked `else`.
+
+An edge without branch metadata behaves as `if` for compatibility with ordinary
+single-output filter chains. Cycles reachable from camera sources are rejected before a
+workflow can run.
+
+Action failures are logged per node and do not terminate traversal of later nodes. Action
+context is shared during one event execution, which lets a Snapshot node provide image
+data and a URL to downstream notification nodes.
+
+## Valkey contracts
+
+| Name | Transport | Direction | Payload |
+| --- | --- | --- | --- |
+| `stream.commands` | Pub/sub | API to inference | `StartStream` or `StopStream` |
+| `worker.events` | Pub/sub | Inference to API | `WorkerStarted`, `WorkerErrored`, or `WorkerStopped` |
+| `detection.frames` | Consumer-group stream | Inference to API | `DetectionFrame` |
+| `frames.last.<camera_id>` | Expiring key | Inference to API | Latest JPEG for snapshots |
+
+The canonical Pydantic definitions live in `packages/shared`. They reject unknown fields
+and include camera, workflow, model, revision, and run provenance where required.
+
+## Frontend boundaries
+
+The web application uses Next.js App Router for route adapters and Feature-Sliced Design
+for product code:
+
+```text
++--------------+     +---------+     +----------+     +----------+     +--------+
+| _app/_pages  |---->| widgets |---->| features |---->| entities |---->| shared |
++--------------+     +---------+     +----------+     +----------+     +--------+
+```
+
+TanStack Query owns REST server state. A scoped Jotai store owns unsaved graph edits and
+selection, while React Flow renders the canvas. Zod validates HTTP and WebSocket payloads
+at the browser boundary. Cross-slice imports use public `index.ts` files.
+
+Runtime URLs are injected into the page on each request. The browser connects directly to
+the API, API WebSocket, and MediaMTX, so those addresses must be reachable from the
+browser—not only from the web container.
+
+## Operational constraints
+
+- A single owner account guards the API and studio; there is no tenant isolation, and
+  MediaMTX still uses its own static stream credentials, so interfaces assume a trusted
+  network.
+- MediaMTX credentials are intentionally visible to the browser for WHIP and WHEP access.
+- The API runs as one process because WebSocket rooms and stateful filters are in memory.
+- A camera source can reach one detect node. Multi-model fan-out needs a different worker
+  identity and is not supported.
+- Detection history is transient. Alerts are durable, and snapshots persist in a volume.
+- Model IDs are immutable for a process lifetime. Publish changed weights under a new ID.
+- Python and TypeScript workflow schemas are maintained independently at service
+  boundaries and must change together.

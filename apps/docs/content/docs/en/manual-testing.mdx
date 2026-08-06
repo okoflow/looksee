@@ -1,0 +1,94 @@
+---
+title: Test a workflow locally
+description: End-to-end smoke test with a local video file.
+---
+
+This smoke test exercises MediaMTX, ONNX inference, Valkey messaging, API graph execution,
+WebSocket updates, PostgreSQL alerts, and WHEP playback with a local video file.
+
+## Prerequisites
+
+- The Docker stack from the root [quick start](https://github.com/okoflow/looksee#run-with-docker).
+- A compatible model bundle listed by `GET /models`.
+- A video whose visible objects match labels in that model.
+
+Run commands from the repository root.
+
+## Add a test video
+
+Upload an H.264-compatible or FFmpeg-readable video through the editor: configure a Camera
+node with source **File** and select **Upload video** in the Video library dialog. The API
+stores the file in the asset store and caches it into the shared media volume that MediaMTX
+mounts read-only.
+
+A `file` camera source starts an on-demand FFmpeg publisher that loops the cached video and
+exposes it as the camera's RTSP and WHEP path.
+
+## Create the workflow
+
+1. Open the [web interface](http://localhost:3000). On a fresh install the setup screen
+   asks you to create the owner account; afterwards, sign in with it.
+2. Select **New workflow**.
+3. Select **Blank workflow**, enter a name, and create it.
+4. Add Camera, Detect, and Alert nodes to the canvas.
+5. Connect `Camera → Detect → Alert`.
+6. Configure Camera with source **File** and pick the uploaded video from the Video
+   library.
+7. Configure Detect with the installed model. Leave Events empty to pass every event
+   exposed by the manifest.
+8. Keep Alert at severity `warning`, then select **Save**.
+9. Select **Run**.
+
+The workflow moves from `pending` to `active` after inference receives its first frame.
+Open the **Live** panel to see WHEP playback, bounding boxes, and derived events. Open
+**Alerts** to confirm that matching detections create durable alert rows.
+
+## Verify the services
+
+```bash
+docker compose ps
+curl --fail --silent http://localhost:8000/health
+docker compose logs --tail=200 api inference mediamtx
+```
+
+Expected results:
+
+- `/health` returns `{"status":"ok"}`.
+- The Detect node's model selector lists the installed model (the `/models` API requires
+  a signed-in session).
+- Inference logs show the model adapter and execution provider.
+- API logs contain no graph, frame, or action errors.
+- MediaMTX reports the camera path as ready while the workflow runs.
+
+## Add filters and snapshots
+
+After the minimal graph works:
+
+1. Stop the workflow.
+2. Insert one filter between Detect and Alert. Configure any required polygon or line.
+3. Insert Snapshot before Alert if you want image evidence.
+4. Save and run the workflow again.
+
+The alert payload contains `snapshot_url` after Snapshot succeeds. The URL is served from
+the API under `/snapshots/` and the image persists in the `api_snapshots` volume.
+
+## Diagnose common failures
+
+| Symptom | Check |
+| --- | --- |
+| No models in the selector | Confirm both bundle files and inspect API logs for manifest validation errors |
+| Run returns HTTP `422` | Use the returned `node_id`; configure the focused node or fix graph topology |
+| Camera status becomes `error` | Check the asset upload, FFmpeg decoding, selected model signature, and inference logs |
+| Video plays without boxes | Confirm the model detects objects in the sample and lower the confidence threshold if appropriate |
+| Boxes appear without events | Check manifest event mappings and the Detect event selection |
+| Alerts do not appear | Check filter branches and confirm an Alert node is reachable from Detect |
+| Snapshot is missing | Put Snapshot upstream of Alert and check the API snapshot directory and last-frame TTL |
+| WHEP playback fails | Check `WEBRTC_HOST_IP`, MediaMTX credentials, and published WebRTC ports |
+
+## Stop the test
+
+Select **Stop** in the workflow editor, then stop the local stack when finished:
+
+```bash
+docker compose down
+```

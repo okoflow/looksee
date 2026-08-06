@@ -1,0 +1,23 @@
+---
+title: Introduction
+description: What LookSee is and where to start.
+---
+
+LookSee is a self-hosted video analytics system for live streams, browser webcams, and
+local video files. It runs ONNX object detection, tracks objects, derives semantic
+events, and routes those events through visual workflows to alerts and external
+integrations.
+
+## Where to start
+
+- [Architecture](./architecture.mdx) explains service boundaries, data flow, desired state,
+  and consistency guarantees.
+- [Workflow reference](./workflow-reference.mdx) defines camera sources, node behavior,
+  validation, and actions.
+- [Model catalog](./model-catalog.mdx) defines bundle manifests, event mapping, and
+  supported ONNX signatures.
+- [Test a workflow locally](./manual-testing.mdx) runs an end-to-end smoke test with a
+  local video file.
+
+To run LookSee itself, follow the
+[repository README](https://github.com/okoflow/looksee#run-with-docker).

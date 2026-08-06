@@ -1,0 +1,74 @@
+# Version control
+
+.git
+.gitignore
+.gitattributes
+
+# Dependencies
+
+**/.venv
+
+# Build output
+
+**/dist
+
+# Tool caches
+
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+
+# Test coverage
+
+**/.coverage
+**/.coverage.*
+**/coverage.xml
+**/htmlcov
+
+# Tests
+
+**/tests
+
+# Environment
+
+**/.env
+
+# Secrets
+
+**/*.pem
+
+# Logs
+
+**/*.log
+
+# Editors
+
+**/.idea
+**/.vscode
+
+# Operating system
+
+**/.DS_Store
+
+# Local overrides
+
+.python-version.local
+
+# Documentation
+
+**/*.md
+
+# Node apps
+
+**/node_modules
+**/.next
+
+# Models (mounted read-only at runtime)
+
+models/*
+
+# Infrastructure
+
+compose.yaml
+docker
+

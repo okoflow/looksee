@@ -1,0 +1,11 @@
+{
+  "pages": [
+    "index",
+    "architecture",
+    "workflow-reference",
+    "model-catalog",
+    "manual-testing",
+    "development",
+    "changelog"
+  ]
+}

@@ -1,0 +1,41 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "looksee-inference"
+version = "0.1.0"
+license = "Apache-2.0"
+authors = [
+    { name = "Vlad Svidskiy" },
+    { name = "Alexey Pereslytskikh" },
+]
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "av",
+    "faststream[cli,redis]",
+    "janus>=2,<3",
+    "numpy",
+    "opencv-python-headless",
+    "pydantic>=2",
+    "pydantic-settings",
+    "python-dotenv>=1.2.2",
+    "redis>=7.4.1",
+    "looksee-shared",
+    "supervision",
+    "trackers==2.5.0.post0",
+]
+
+[project.optional-dependencies]
+cpu = [
+    "onnxruntime",
+]
+gpu = [
+    "onnxruntime-gpu ; sys_platform == 'linux'",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/inference"]
+
+[tool.uv.sources]
+looksee-shared = { workspace = true }

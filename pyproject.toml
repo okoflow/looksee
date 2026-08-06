@@ -1,0 +1,66 @@
+[project]
+name = "looksee"
+version = "0.1.0"
+requires-python = ">=3.12,<3.13"
+
+[dependency-groups]
+dev = [
+    "fastapi-cli",
+    "ruff>=0.16.1,<0.17",
+]
+
+[tool.uv]
+package = false
+override-dependencies = ["opencv-python; sys_platform == 'never'"]
+conflicts = [
+    [
+        { package = "looksee-inference", extra = "cpu" },
+        { package = "looksee-inference", extra = "gpu" },
+    ],
+]
+
+[tool.uv.workspace]
+members = ["apps/api", "apps/inference", "packages/shared", "ee/api"]
+
+[tool.ruff]
+line-length = 100
+extend-exclude = [".agents"]
+src = ["apps/api/src", "apps/inference/src", "packages/shared/src", "ee/api/src"]
+
+[tool.ruff.lint]
+select = [
+    "ASYNC",
+    "B",
+    "C4",
+    "DTZ",
+    "E4",
+    "E7",
+    "E9",
+    "F",
+    "FAST",
+    "G",
+    "I",
+    "LOG",
+    "N",
+    "PIE",
+    "PTH",
+    "RET",
+    "RUF",
+    "S",
+    "SIM",
+    "T20",
+    "TC",
+    "UP",
+    "W",
+]
+
+[tool.ruff.lint.flake8-type-checking]
+runtime-evaluated-base-classes = [
+    "pydantic.BaseModel",
+    "pydantic_settings.BaseSettings",
+    "sqlalchemy.orm.DeclarativeBase",
+    "api.domain.workflow.base.WorkflowModel",
+    "api.domain.workflow.conditions.ConditionModel",
+    "api.domain.workflow.filters.FilterNodeData",
+    "api.domain.workflow.actions.ActionNodeData",
+]

@@ -1,0 +1,254 @@
+name: looksee
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+x-healthcheck: &healthcheck-defaults
+  interval: 15s
+  timeout: 5s
+  retries: 5
+  start_period: 30s
+
+x-service: &service-defaults
+  restart: unless-stopped
+  logging: *default-logging
+  init: true
+
+x-env-file: &env-file
+  - path: .env
+    required: false
+
+services:
+  redis:
+    <<: *service-defaults
+    image: valkey/valkey:9-alpine
+    command: valkey-server --save 60 1 --appendonly yes --appendfsync everysec --maxmemory ${REDIS_MAXMEMORY:-512mb} --maxmemory-policy noeviction --loglevel warning
+    ports:
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD", "valkey-cli", "ping"]
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 768m
+
+  postgres:
+    <<: *service-defaults
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-looksee}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-looksee}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      <<: *healthcheck-defaults
+      start_period: 40s
+      test:
+        - CMD-SHELL
+        - pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB" -h 127.0.0.1
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2g
+
+  mediamtx:
+    <<: *service-defaults
+    # The -ffmpeg variant ships ffmpeg for looping file sources via runOnDemand.
+    image: bluenviron/mediamtx:1.19.3-ffmpeg
+    ports:
+      - "${MTX_RTSP_PORT:-8554}:8554"
+      - "${MTX_WEBRTC_PORT:-8889}:8889"
+      - "${MTX_WEBRTC_ICE_PORT:-8189}:8189/udp"
+      - "127.0.0.1:9997:9997"
+    volumes:
+      - ./docker/mediamtx/mediamtx.yml:/mediamtx.yml:ro
+      - media-cache:/media:ro
+    environment:
+      MTX_LOGLEVEL: ${MTX_LOGLEVEL:-info}
+      MTX_WEBRTCADDITIONALHOSTS: ${WEBRTC_HOST_IP:?set WEBRTC_HOST_IP in .env (127.0.0.1 locally, the box LAN IP on-prem)}
+      MTX_AUTHINTERNALUSERS_0_USER: ${MTX_MEDIA_USER:-media}
+      MTX_AUTHINTERNALUSERS_0_PASS: ${MTX_MEDIA_PASSWORD:?set MTX_MEDIA_PASSWORD in .env}
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 1g
+
+  media-cache-init:
+    image: ${REGISTRY:-looksee}/api:${TAG:-latest}
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: "no"
+    logging: *default-logging
+    user: "0:0"
+    entrypoint: ["sh", "-c", "rm -rf /cache/cdrom /cache/floppy /cache/usb && chown -R api:api /cache"]
+    volumes:
+      - media-cache:/cache
+
+  api-migrate:
+    image: ${REGISTRY:-looksee}/api:${TAG:-latest}
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: "no"
+    logging: *default-logging
+    command: ["alembic", "-c", "apps/api/alembic.ini", "upgrade", "head"]
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-looksee}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-looksee}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    <<: *service-defaults
+    image: ${REGISTRY:-looksee}/api:${TAG:-latest}
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    env_file: *env-file
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-looksee}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-looksee}
+      REDIS_URL: redis://redis:6379/0
+      MEDIAMTX_API_URL: http://mediamtx:9997
+      MODELS_DIR: /app/models
+      SNAPSHOTS_DIR: /data/snapshots
+      SECRET_KEY_FILE: /data/keys/secret.key
+      MEDIA_CACHE_DIR: /var/lib/looksee/media-cache
+    volumes:
+      - api_snapshots:/data/snapshots
+      - api_keys:/data/keys
+      - media-cache:/var/lib/looksee/media-cache
+      - ./models:/app/models:ro
+    ports:
+      - "${API_PORT:-8000}:8000"
+    healthcheck:
+      <<: *healthcheck-defaults
+      test:
+        - CMD
+        - python
+        - -c
+        - import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3).status == 200 else 1)
+    depends_on:
+      postgres:
+        condition: service_healthy
+        restart: true
+      redis:
+        condition: service_healthy
+        restart: true
+      api-migrate:
+        condition: service_completed_successfully
+      media-cache-init:
+        condition: service_completed_successfully
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 1g
+
+  inference:
+    <<: *service-defaults
+    image: ${REGISTRY:-looksee}/inference:${TAG:-latest}
+    build:
+      context: .
+      dockerfile: apps/inference/Dockerfile
+    env_file: *env-file
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      MEDIAMTX_RTSP_URL: rtsp://mediamtx:8554
+      MODELS_DIR: /app/models
+    healthcheck:
+      <<: *healthcheck-defaults
+      test:
+        - CMD
+        - python
+        - -c
+        - import os,redis; redis.from_url(os.environ['REDIS_URL'], socket_timeout=4).ping()
+    depends_on:
+      redis:
+        condition: service_healthy
+        restart: true
+      mediamtx:
+        condition: service_started
+    volumes:
+      - ./models:/app/models:ro
+    deploy:
+      resources:
+        limits:
+          cpus: ${INFERENCE_CPUS:-4.0}
+          memory: ${INFERENCE_MEMORY:-4g}
+
+  studio:
+    <<: *service-defaults
+    image: ${REGISTRY:-looksee}/studio:${TAG:-latest}
+    build:
+      context: .
+      dockerfile: apps/studio/Dockerfile
+    environment:
+      RUNTIME_API_URL: ${RUNTIME_API_URL:-http://${WEBRTC_HOST_IP}:${API_PORT:-8000}}
+      RUNTIME_WS_URL: ${RUNTIME_WS_URL:-ws://${WEBRTC_HOST_IP}:${API_PORT:-8000}}
+      RUNTIME_MEDIAMTX_WEBRTC_URL: ${RUNTIME_MEDIAMTX_WEBRTC_URL:-http://${WEBRTC_HOST_IP}:${MTX_WEBRTC_PORT:-8889}}
+      RUNTIME_MEDIAMTX_MEDIA_USER: ${MTX_MEDIA_USER:-media}
+      RUNTIME_MEDIAMTX_MEDIA_PASSWORD: ${MTX_MEDIA_PASSWORD:?set MTX_MEDIA_PASSWORD in .env}
+      RUNTIME_DOCS_URL: ${RUNTIME_DOCS_URL:-http://${WEBRTC_HOST_IP}:${DOCS_PORT:-3002}/docs}
+      RUNTIME_GITHUB_URL: ${RUNTIME_GITHUB_URL:-https://github.com/okoflow/looksee}
+      SERVER_API_URL: http://api:8000
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    healthcheck:
+      <<: *healthcheck-defaults
+      test:
+        - CMD
+        - node
+        - -e
+        - fetch('http://127.0.0.1:3000/api/health').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))
+    depends_on:
+      api:
+        condition: service_healthy
+        restart: true
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512m
+
+
+  docs:
+    <<: *service-defaults
+    profiles: ["docs"]
+    image: ${REGISTRY:-looksee}/docs:${TAG:-latest}
+    build:
+      context: .
+      dockerfile: apps/docs/Dockerfile
+    ports:
+      - "${DOCS_PORT:-3002}:3000"
+    healthcheck:
+      <<: *healthcheck-defaults
+      test:
+        - CMD
+        - node
+        - -e
+        - fetch('http://127.0.0.1:3000/docs').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256m
+
+volumes:
+  redis_data:
+  postgres_data:
+  api_snapshots:
+  api_keys:
+  media-cache:

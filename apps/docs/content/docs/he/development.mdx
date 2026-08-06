@@ -1,0 +1,62 @@
+---
+title: פיתוח
+description: הרצת LookSee מקוד המקור והבדיקות שצריכות לעבור לפני שינוי.
+---
+
+## דרישות מקדימות
+
+Python 3.12 עם [uv](https://docs.astral.sh/uv/), Node.js 24 עם pnpm 11, ו-Docker
+עם Compose 2.24 ומעלה.
+
+## הרצה מקוד המקור
+
+הריצו את כל הפקודות משורש המאגר:
+
+```bash
+uv sync --all-packages --extra cpu
+pnpm -C apps/studio install --frozen-lockfile
+
+docker compose up -d postgres redis mediamtx
+uv run --package looksee-api alembic -c apps/api/alembic.ini upgrade head
+
+uv run --package looksee-api fastapi dev apps/api/src/api/main.py
+uv run --package looksee-inference faststream run inference.main:app
+pnpm -C apps/studio dev
+```
+
+הסירו את סימני ההערה מהקטע `Native development outside compose` בקובץ `.env` כדי
+שתהליכים שרצים על המארח ישתמשו בכתובות השירותים של localhost. קובץ `.env` שבשורש
+המאגר הוא מקור התצורה היחיד; `.env.example` הוא הרשימה הקנונית של ההגדרות.
+
+## בדיקות
+
+הריצו לפני סיום כל שינוי:
+
+```bash
+uv run ruff check .
+uv run ruff format --check .
+pnpm -C apps/studio lint
+pnpm -C apps/studio typecheck
+pnpm -C apps/studio build
+docker compose --env-file .env.example config --quiet
+```
+
+לאחר שינויים ב-ORM, שמרו גם על שרשרת מיגרציות נקייה:
+
+```bash
+uv run --package looksee-api alembic -c apps/api/alembic.ini check
+```
+
+## מבנה המאגר
+
+| נתיב | תחום אחריות |
+| --- | --- |
+| `apps/api` | מישור בקרה מבוסס FastAPI, הרצת תהליכי עבודה, התראות ועדכונים בזמן אמת |
+| `apps/inference` | זיהוי ONNX, מעקב אחר אובייקטים ומחזור החיים של תהליכי ה-worker של המצלמות |
+| `apps/studio` | עורך תהליכי עבודה ב-Next.js וממשק ניטור חי |
+| `apps/docs` | אתר תיעוד מבוסס Fumadocs |
+| `packages/shared` | חוזים קפדניים בין ה-API ל-inference וסכמת המניפסט של המודלים |
+| `packages/brand` | נכסי המותג הקנוניים של LookSee |
+| `ee/` | קוד המהדורה המסחרית, ברישיון `ee/LICENSE` |
+| `docker/` | תצורת MediaMTX |
+| `models/` | חבילות מודלים מוחרגות מ-git, לקריאה בלבד, הנטענות (mount) בזמן ריצה |
