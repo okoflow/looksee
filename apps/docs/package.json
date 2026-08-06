@@ -20,10 +20,10 @@
   "dependencies": {
     "@looksee/brand": "file:../../packages/brand",
     "class-variance-authority": "^0.7.1",
-    "cnfast": "^0.0.8",
+    "cnfast": "^0.1.0",
     "flexsearch": "^0.8.212",
     "fumadocs-core": "16.13.0",
-    "fumadocs-mdx": "15.2.1",
+    "fumadocs-mdx": "15.2.2",
     "fumadocs-ui": "npm:@fumadocs/base-ui@16.13.0",
     "lucide-react": "^1.25.0",
     "next": "16.2.12",
