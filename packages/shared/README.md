@@ -23,6 +23,3 @@ Wire models reject unknown fields and are immutable after validation. `revision`
 stale desired state, and `run_id` identifies a concrete worker run. There are no legacy
 aliases or automatic schema upgrades: deploy the API and inference services together when
 a shared payload changes.
-
-See the [model catalog](../../apps/docs/content/docs/model-catalog.mdx) for the manifest
-contract.

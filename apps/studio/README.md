@@ -42,7 +42,3 @@ details for a trusted deployment, not as private backend secrets.
 
 `SERVER_API_URL` is server-only: the auth guard resolves sessions against it, so inside
 compose it points at the internal `http://api:8000` service address.
-
-See the [workflow reference](../docs/content/docs/workflow-reference.mdx) for current
-nodes and presets, and the [architecture guide](../docs/content/docs/architecture.mdx)
-for frontend boundaries.
