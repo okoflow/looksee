@@ -35,6 +35,5 @@ Model selection is based on tensor signatures, never model IDs. Add an
 strict `supports(signature)` predicate, return `supervision.Detections` from
 `detect(frame)`, and register the adapter type in `src/inference/adapters/onnx/registry.py`.
 
-See the [model catalog](../docs/content/docs/model-catalog.mdx) for the bundle layout and
-manifest schema, and the [shared package](../../packages/shared/README.md) before changing
-command or event payloads.
+See the [shared package](../../packages/shared/README.md) before changing command or event
+payloads.

@@ -34,7 +34,3 @@ uv run --package looksee-api fastapi dev apps/api/src/api/main.py
 The running service exposes OpenAPI at `http://localhost:8000/docs`. After an ORM change,
 keep the squashed `0001` migration in sync and verify with
 `uv run --package looksee-api alembic -c apps/api/alembic.ini check`.
-
-See the [architecture guide](../docs/content/docs/architecture.mdx) for the consistency
-model and the [workflow reference](../docs/content/docs/workflow-reference.mdx) for graph
-behavior.

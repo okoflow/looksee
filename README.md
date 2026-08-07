@@ -33,8 +33,7 @@ docker compose up -d --build
 Open the [web interface](http://127.0.0.1:3000) and create the owner account — the
 defaults work out of the box. The [documentation](http://127.0.0.1:3002/docs) and the
 [interactive API reference](http://127.0.0.1:8000/docs) run alongside. To run a
-workflow, add a model bundle first — see the
-[model catalog](apps/docs/content/docs/en/model-catalog.mdx).
+workflow, add a model bundle first.
 
 > [!WARNING]
 > Until the owner account is created on first launch, anyone who can reach the web
@@ -44,14 +43,8 @@ workflow, add a model bundle first — see the
 ## Documentation
 
 Served by the stack at [localhost:3002/docs](http://localhost:3002/docs) in English,
-Russian, Hebrew, and Korean, or browsable in the repository:
-
-- [Architecture](apps/docs/content/docs/en/architecture.mdx)
-- [Workflow reference](apps/docs/content/docs/en/workflow-reference.mdx)
-- [Model catalog](apps/docs/content/docs/en/model-catalog.mdx)
-- [Manual workflow smoke test](apps/docs/content/docs/en/manual-testing.mdx)
-- [Development](apps/docs/content/docs/en/development.mdx)
-- [Release notes](apps/docs/content/docs/en/changelog.mdx)
+Russian, Hebrew, and Korean. It is still being written; until it lands, the
+[release notes](https://github.com/okoflow/looksee/releases) carry what changed.
 
 ## License
 
