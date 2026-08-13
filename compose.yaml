@@ -65,7 +65,7 @@ services:
   mediamtx:
     <<: *service-defaults
     # The -ffmpeg variant ships ffmpeg for looping file sources via runOnDemand.
-    image: bluenviron/mediamtx:1.19.3-ffmpeg
+    image: bluenviron/mediamtx:1.20.0-ffmpeg
     ports:
       - "${MTX_RTSP_PORT:-8554}:8554"
       - "${MTX_WEBRTC_PORT:-8889}:8889"
