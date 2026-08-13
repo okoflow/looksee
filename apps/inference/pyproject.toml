@@ -20,7 +20,7 @@ dependencies = [
     "pydantic>=2",
     "pydantic-settings",
     "python-dotenv>=1.2.2",
-    "redis>=8.0.1",
+    "redis>=8.1.0",
     "looksee-shared",
     "supervision",
     "trackers==2.5.0.post0",
