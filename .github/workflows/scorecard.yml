@@ -1,1 +1,13 @@
-# TODO
+# TODO: not implemented yet. Manual trigger only, so nothing runs and
+# GitHub does not flag the file as an invalid workflow.
+name: Scorecard
+
+on:
+  workflow_dispatch:
+
+jobs:
+  todo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Placeholder
+        run: echo "TODO"
