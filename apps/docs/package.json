@@ -20,24 +20,24 @@
   "dependencies": {
     "@looksee/brand": "file:../../packages/brand",
     "class-variance-authority": "^0.7.1",
-    "cnfast": "^0.0.8",
+    "cnfast": "^0.1.0",
     "flexsearch": "^0.8.212",
-    "fumadocs-core": "16.13.0",
-    "fumadocs-mdx": "15.2.1",
+    "fumadocs-core": "16.14.0",
+    "fumadocs-mdx": "15.2.3",
     "fumadocs-ui": "npm:@fumadocs/base-ui@16.13.0",
     "lucide-react": "^1.25.0",
-    "next": "16.2.12",
+    "next": "16.3.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.5",
+    "@biomejs/biome": "^2.5.7",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/mdx": "^2.0.14",
     "@types/node": "^26.1.1",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
-    "postcss": "^8.5.21",
+    "postcss": "^8.5.26",
     "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3"
   }
