@@ -8,7 +8,7 @@ through an on-demand ffmpeg publisher inside the mediamtx container. A `webrtc` 
 publisher-mode: a browser or device pushes the stream in via WHIP at
 `{webrtc_url}/{camera_id}/whip`, so the path waits for a publisher and sets no
 source. Either way inference reads `rtsp://mediamtx:8554/{camera_id}` and the
-browser plays `{webrtc_url}/{camera_id}/whep`. Add/replace/delete are
+browser plays `{webrtc_url}/{camera_id}/whep`. Replace/delete are
 idempotent so retries are safe.
 """
 
@@ -117,13 +117,8 @@ async def upsert_camera_path(
     body = _path_body(source_type, source_url)
 
     response = await client.post(
-        f"{_API_BASE}/v3/config/paths/add/{name}", json=body, timeout=_PATH_TIMEOUT
+        f"{_API_BASE}/v3/config/paths/replace/{name}", json=body, timeout=_PATH_TIMEOUT
     )
-    if response.status_code == 400:
-        # Path already exists — patch it in place.
-        response = await client.patch(
-            f"{_API_BASE}/v3/config/paths/patch/{name}", json=body, timeout=_PATH_TIMEOUT
-        )
 
     response.raise_for_status()
 
