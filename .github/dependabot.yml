@@ -51,37 +51,11 @@ updates:
       prefix: build
       include: scope
 
-  - package-ecosystem: npm
-    directory: /apps/docs
-    schedule:
-      interval: weekly
-    cooldown:
-      default-days: 3
-      semver-major-days: 30
-      semver-minor-days: 7
-      semver-patch-days: 3
-    groups:
-      docs-minor-patch:
-        applies-to: version-updates
-        patterns:
-          - "*"
-        update-types:
-          - minor
-          - patch
-      docs-security:
-        applies-to: security-updates
-        patterns:
-          - "*"
-    commit-message:
-      prefix: build
-      include: scope
-
   - package-ecosystem: docker
     directories:
       - /apps/api
       - /apps/inference
       - /apps/studio
-      - /apps/docs
     schedule:
       interval: weekly
     cooldown:
