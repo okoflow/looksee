@@ -224,28 +224,6 @@ services:
           memory: 512m
 
 
-  docs:
-    <<: *service-defaults
-    profiles: ["docs"]
-    image: ${REGISTRY:-looksee}/docs:${TAG:-latest}
-    build:
-      context: .
-      dockerfile: apps/docs/Dockerfile
-    ports:
-      - "${DOCS_PORT:-3002}:3000"
-    healthcheck:
-      <<: *healthcheck-defaults
-      test:
-        - CMD
-        - node
-        - -e
-        - fetch('http://127.0.0.1:3000/docs').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))
-    deploy:
-      resources:
-        limits:
-          cpus: "0.5"
-          memory: 256m
-
 volumes:
   redis_data:
   postgres_data:
