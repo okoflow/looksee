@@ -19,6 +19,11 @@ if config.config_file_name is not None:
 
 target_metadata = Base.metadata
 
+_autogenerate_plugins = [
+    "alembic.autogenerate.defaults",
+    "alembic.autogenerate.comments",
+]
+
 
 def run_migrations_offline() -> None:
     url = config.get_main_option("sqlalchemy.url")
@@ -28,6 +33,7 @@ def run_migrations_offline() -> None:
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
         compare_type=True,
+        autogenerate_plugins=_autogenerate_plugins,
     )
 
     with context.begin_transaction():
@@ -39,6 +45,7 @@ def do_run_migrations(connection: Connection) -> None:
         connection=connection,
         target_metadata=target_metadata,
         compare_type=True,
+        autogenerate_plugins=_autogenerate_plugins,
     )
 
     with context.begin_transaction():
