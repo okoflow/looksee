@@ -23,7 +23,7 @@ dependencies = [
     "redis>=8.1.0",
     "looksee-shared",
     "supervision",
-    "trackers==2.5.0.post0",
+    "trackers==2.6.0",
 ]
 
 [project.optional-dependencies]
