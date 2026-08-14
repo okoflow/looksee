@@ -1,20 +1,19 @@
 {
   "name": "@looksee/studio",
   "version": "0.1.0",
+  "private": true,
   "license": "Apache-2.0",
   "contributors": [
     "Vlad Svidskiy",
     "Alexey Pereslytskikh"
   ],
-  "private": true,
-  "packageManager": "pnpm@11.11.0",
   "scripts": {
-    "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "dev": "next dev",
     "lint": "ultracite check",
     "lint:fix": "ultracite fix",
     "lint:fsd": "steiger ./src",
+    "start": "next start",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -53,5 +52,6 @@
     "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3",
     "ultracite": "7.10.1"
-  }
+  },
+  "packageManager": "pnpm@11.11.0"
 }
