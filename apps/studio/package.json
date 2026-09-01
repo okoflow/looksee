@@ -19,19 +19,19 @@
   "dependencies": {
     "@base-ui/react": "^1.7.0",
     "@dagrejs/dagre": "^3.1.1",
-    "@hookform/resolvers": "^5.7.1",
+    "@hookform/resolvers": "^5.9.1",
     "@looksee/brand": "file:../../packages/brand",
     "@tanstack/react-query": "^5.101.4",
-    "@xyflow/react": "^12.11.2",
+    "@xyflow/react": "^12.11.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "jotai": "^2.20.2",
     "ky": "^2.0.2",
-    "lucide-react": "^1.29.0",
-    "next": "16.3.0",
+    "lucide-react": "^1.33.0",
+    "next": "16.3.2",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "react-hook-form": "^7.84.0",
+    "react-hook-form": "^7.85.0",
     "reconnecting-websocket": "^4.4.0",
     "server-only": "^0.0.1",
     "sonner": "^2.0.8",
@@ -40,18 +40,18 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.7",
+    "@biomejs/biome": "2.5.10",
     "@feature-sliced/steiger-plugin": "^0.7.0",
     "@tailwindcss/postcss": "^4.3.3",
-    "@types/node": "^26.1.2",
+    "@types/node": "^26.2.0",
     "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.4",
+    "@types/react-dom": "^19.2.5",
     "babel-plugin-react-compiler": "^1.0.0",
-    "shadcn": "^4.16.2",
+    "shadcn": "^4.18.0",
     "steiger": "^0.6.0",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
-    "ultracite": "7.10.2"
+    "ultracite": "7.10.6"
   },
   "packageManager": "pnpm@11.11.0"
 }
