@@ -13,7 +13,6 @@ WORKDIR /repo/apps/studio
 
 FROM base AS deps
 
-COPY packages/brand /repo/packages/brand
 COPY apps/studio/package.json apps/studio/pnpm-lock.yaml apps/studio/pnpm-workspace.yaml ./
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --ignore-scripts
@@ -22,7 +21,6 @@ FROM base AS builder
 
 ENV NODE_ENV=production
 
-COPY --from=deps /repo/packages/brand /repo/packages/brand
 COPY --from=deps /repo/apps/studio/node_modules ./node_modules
 COPY apps/studio/ ./
 

@@ -1,6 +1,6 @@
 "use client";
 
-import logomark from "@looksee/brand/logomark.svg";
+import logomark from "@/shared/ui/logomark.svg";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { type FormEventHandler, useState } from "react";

@@ -1,6 +1,6 @@
 "use client";
 
-import logomark from "@looksee/brand/logomark.svg";
+import logomark from "@/shared/ui/logomark.svg";
 import { BookOpenIcon, KeyRoundIcon, LogOutIcon, StarIcon, WorkflowIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
