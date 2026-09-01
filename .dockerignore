@@ -50,10 +50,6 @@
 
 **/.DS_Store
 
-# Local overrides
-
-.python-version.local
-
 # Documentation
 
 **/*.md

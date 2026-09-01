@@ -24,7 +24,6 @@ members = ["apps/api", "apps/inference", "packages/shared", "ee/api"]
 
 [tool.ruff]
 line-length = 100
-extend-exclude = [".agents"]
 src = ["apps/api/src", "apps/inference/src", "packages/shared/src", "ee/api/src"]
 
 [tool.ruff.lint]
