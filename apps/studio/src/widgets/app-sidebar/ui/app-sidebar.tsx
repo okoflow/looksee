@@ -1,11 +1,11 @@
 "use client";
 
-import logomark from "@/shared/ui/logomark.svg";
 import { BookOpenIcon, KeyRoundIcon, LogOutIcon, StarIcon, WorkflowIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { getDocsUrl, getGithubUrl } from "@/shared/config";
+import logomark from "@/shared/ui/logomark.svg";
 import {
   Sidebar,
   SidebarContent,
