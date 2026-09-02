@@ -1,8 +1,86 @@
 name: Bug report
-description: TODO
+description: Something in LookSee does not behave as documented
 type: Bug
 labels: []
 body:
   - type: markdown
     attributes:
-      value: TODO
+      value: |
+        Thanks for the report. Fill in what you can; the version, the deployment shape, and the service logs make most bugs reproducible on the first try. Security problems go through [private vulnerability reporting](https://github.com/okoflow/looksee/security/advisories/new) instead.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you did, what you saw, and what you expected instead.
+      placeholder: Enabled a workflow with an RTSP camera; the camera stayed in the pending state and the monitor page showed no frames.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Create a workflow with a camera source and a detect node
+        2. Enable it
+        3. Open the monitor page
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Release tag or commit hash, and the container image tag if you run the published images.
+      placeholder: v0.1.0 or 1a64fc0
+    validations:
+      required: true
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      multiple: true
+      options:
+        - API
+        - Inference
+        - Studio
+        - MediaMTX / streaming
+        - Compose / Docker
+        - Models
+        - Enterprise (ee)
+        - Unsure
+    validations:
+      required: true
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: Deployment
+      options:
+        - Docker Compose
+        - Native services
+        - Kubernetes or other orchestrator
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: camera-source
+    attributes:
+      label: Camera source type
+      description: Only if the bug involves a camera.
+      options:
+        - RTSP
+        - RTMP
+        - SRT
+        - Browser webcam (WebRTC)
+        - WHEP
+        - File
+        - Not applicable
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Output of `docker compose logs api inference studio mediamtx` around the failure, with secrets removed.
+      render: text
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Operating system, CPU or GPU, browser for Studio issues, and anything unusual about the network.
