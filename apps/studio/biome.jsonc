@@ -5,6 +5,9 @@
     "ultracite/biome/next",
     "ultracite/biome/react"
   ],
+  "vcs": {
+    "root": "../.."
+  },
   "files": {
     "includes": ["!**/*.svg"]
   },
