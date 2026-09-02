@@ -21,7 +21,7 @@ src/inference/
 
 ## Run locally
 
-Complete the root [development setup](../../README.md#develop-locally), including the CPU
+Complete the root [development setup](../../CONTRIBUTING.md#development-setup), including the CPU
 extra and native `.env` URLs, then:
 
 ```bash

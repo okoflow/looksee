@@ -1,8 +1,43 @@
 name: Feature request
-description: TODO
+description: Propose a capability, node type, integration, or improvement
 type: Feature
 labels: []
 body:
   - type: markdown
     attributes:
-      value: TODO
+      value: |
+        Describe the problem before the solution. Proposals that fit the existing workflow model (sources, detection, filters, actions) are the easiest to land.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What are you trying to achieve, and what stops you today?
+      placeholder: I want to be notified only when a vehicle stays in the loading zone longer than two minutes.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: How LookSee could solve it. A new node, a new option on an existing node, an integration, a deployment change.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives
+      description: Workarounds you tried or other designs you considered.
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      multiple: true
+      options:
+        - Workflow nodes
+        - Camera sources / streaming
+        - Detection models
+        - Actions and integrations
+        - Studio interface
+        - API
+        - Deployment
+        - Other

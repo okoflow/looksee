@@ -1,1 +1,8 @@
 blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/okoflow/looksee/security/advisories/new
+    about: Report a vulnerability privately. Do not open a public issue for security problems.
+  - name: Documentation
+    url: https://github.com/okoflow/looksee-docs
+    about: Guides and reference for installing and using LookSee, in several languages.
