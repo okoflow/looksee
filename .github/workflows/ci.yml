@@ -1,5 +1,3 @@
-# TODO: not implemented yet. Manual trigger only, so nothing runs and
-# GitHub does not flag the file as an invalid workflow.
 name: CI
 
 on:
