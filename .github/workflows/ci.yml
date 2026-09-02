@@ -1,11 +1,120 @@
 name: CI
 
 on:
-  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  FORCE_COLOR: "1"
 
 jobs:
-  todo:
+  python:
+    name: Python
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      # Primary keys default to uuidv7(), a native function from PostgreSQL 18 on.
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: looksee
+          POSTGRES_PASSWORD: looksee
+          POSTGRES_DB: looksee
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U looksee -d looksee"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql+asyncpg://looksee:looksee@localhost:5432/looksee
+      REDIS_URL: redis://localhost:6379/0
+
     steps:
-      - name: Placeholder
-        run: echo "TODO"
+      - uses: actions/checkout@v7
+
+      - uses: astral-sh/setup-uv@v9
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Install dependencies
+        run: uv sync --all-packages --extra cpu --locked
+
+      - name: Lint
+        run: uv run ruff check .
+
+      - name: Formatting
+        run: uv run ruff format --check .
+
+      - name: Tests
+        run: uv run pytest -q
+
+      # `alembic check` compares the ORM against a database already at head, so
+      # the squashed migration runs first. That also proves 0001 still applies
+      # to an empty database, which is the only way it ships.
+      - name: Apply migrations
+        run: uv run --package looksee-api alembic -c apps/api/alembic.ini upgrade head
+
+      - name: Migrations match the ORM
+        run: uv run --package looksee-api alembic -c apps/api/alembic.ini check
+
+  studio:
+    name: Studio
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: apps/studio
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+        with:
+          package_json_file: apps/studio/package.json
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: apps/studio/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Architecture lint
+        run: pnpm lint:fsd
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Build
+        run: pnpm build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+
+  compose:
+    name: Compose
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Compose file resolves
+        run: docker compose --env-file .env.example config --quiet
