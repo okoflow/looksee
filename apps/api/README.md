@@ -12,7 +12,6 @@ src/api/
 ├── application/  workflow, camera, reconciliation, validation, and execution use cases
 ├── adapters/     PostgreSQL, Valkey, MediaMTX, filesystem, delivery, and runtime state
 ├── entrypoints/  HTTP and WebSocket routers plus Redis subscribers
-├── composition.py
 ├── config.py
 └── main.py
 alembic/          the fresh-install database migration
@@ -24,7 +23,7 @@ transport details out of the domain layer.
 
 ## Run locally
 
-Complete the root [development setup](../../README.md#develop-locally) first, then:
+Complete the root [development setup](../../CONTRIBUTING.md#development-setup) first, then:
 
 ```bash
 uv run --package looksee-api alembic -c apps/api/alembic.ini upgrade head
