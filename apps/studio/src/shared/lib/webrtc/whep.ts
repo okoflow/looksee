@@ -22,7 +22,10 @@ export async function playWhep(
   video: HTMLVideoElement,
   signal: AbortSignal
 ): Promise<RTCPeerConnection> {
+  signal.throwIfAborted();
+
   const peerConnection = new RTCPeerConnection({ iceServers: [] });
+  let closeSession: (() => void) | undefined;
 
   peerConnection.addTransceiver("video", { direction: "recvonly" });
   peerConnection.addTransceiver("audio", { direction: "recvonly" });
@@ -36,15 +39,26 @@ export async function playWhep(
   };
 
   const close = () => {
+    signal.removeEventListener("abort", close);
+    peerConnection.removeEventListener("connectionstatechange", release);
     peerConnection.close();
+    closeSession?.();
 
     video.srcObject = null;
   };
+  const release = () => {
+    if (peerConnection.connectionState === "closed") {
+      signal.removeEventListener("abort", close);
+      peerConnection.removeEventListener("connectionstatechange", release);
+      closeSession?.();
+    }
+  };
 
   signal.addEventListener("abort", close, { once: true });
+  peerConnection.addEventListener("connectionstatechange", release);
 
   try {
-    await negotiateSdp({
+    closeSession = await negotiateSdp({
       authorization,
       mapErrorResponse: whepResponseError,
       peerConnection,

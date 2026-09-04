@@ -1,0 +1,8 @@
+services:
+  mediamtx:
+    environment:
+      MTX_AUTHHTTPADDRESS: http://host.docker.internal:8000/internal/media/auth
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./data/media-cache:/media:ro

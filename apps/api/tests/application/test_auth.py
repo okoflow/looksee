@@ -2,8 +2,10 @@
 
 import pytest
 
+from api.adapters.persistence.accounts import SqlAlchemyAccounts
 from api.adapters.persistence.models import User
 from api.adapters.security import verify_password
+from api.adapters.security.passwords import Argon2Passwords
 from api.application import auth
 from api.application.errors import InvalidCredentialsError, ResourceConflictError
 
@@ -21,10 +23,10 @@ def test_normalize_email_lowercases_and_strips(raw, expected):
 
 
 async def test_requires_setup_until_first_user_exists(fake_session):
-    before = await auth.requires_setup(fake_session)
+    before = await auth.requires_setup(SqlAlchemyAccounts(fake_session))
 
     fake_session.seed(User(email="owner@example.com", name="Owner", password_hash="x"))
-    after = await auth.requires_setup(fake_session)
+    after = await auth.requires_setup(SqlAlchemyAccounts(fake_session))
 
     assert before is True
     assert after is False
@@ -32,7 +34,11 @@ async def test_requires_setup_until_first_user_exists(fake_session):
 
 async def test_create_owner_persists_normalized_email_and_hashed_password(fake_session):
     owner = await auth.create_owner(
-        fake_session, email=" Owner@Example.com ", name="Owner", password="Secret123"
+        SqlAlchemyAccounts(fake_session),
+        Argon2Passwords(),
+        email=" Owner@Example.com ",
+        name="Owner",
+        password="Secret123",
     )
 
     assert owner.email == "owner@example.com"
@@ -43,45 +49,84 @@ async def test_create_owner_persists_normalized_email_and_hashed_password(fake_s
 
 
 async def test_create_owner_refuses_a_second_owner(fake_session):
-    await auth.create_owner(fake_session, email="a@example.com", name="A", password="Secret123")
+    await auth.create_owner(
+        SqlAlchemyAccounts(fake_session),
+        Argon2Passwords(),
+        email="a@example.com",
+        name="A",
+        password="Secret123",
+    )
 
     with pytest.raises(ResourceConflictError, match="already set up"):
-        await auth.create_owner(fake_session, email="b@example.com", name="B", password="Secret123")
+        await auth.create_owner(
+            SqlAlchemyAccounts(fake_session),
+            Argon2Passwords(),
+            email="b@example.com",
+            name="B",
+            password="Secret123",
+        )
 
     assert len(fake_session.rows[User]) == 1
 
 
 async def test_authenticate_matches_email_case_insensitively(fake_session):
     owner = await auth.create_owner(
-        fake_session, email="owner@example.com", name="Owner", password="Secret123"
+        SqlAlchemyAccounts(fake_session),
+        Argon2Passwords(),
+        email="owner@example.com",
+        name="Owner",
+        password="Secret123",
     )
 
-    user = await auth.authenticate(fake_session, email="OWNER@example.com ", password="Secret123")
+    user = await auth.authenticate(
+        SqlAlchemyAccounts(fake_session),
+        Argon2Passwords(),
+        email="OWNER@example.com ",
+        password="Secret123",
+    )
 
     assert user is owner
 
 
 async def test_authenticate_rejects_wrong_password(fake_session):
     await auth.create_owner(
-        fake_session, email="owner@example.com", name="Owner", password="Secret123"
+        SqlAlchemyAccounts(fake_session),
+        Argon2Passwords(),
+        email="owner@example.com",
+        name="Owner",
+        password="Secret123",
     )
 
     with pytest.raises(InvalidCredentialsError, match="invalid email or password"):
-        await auth.authenticate(fake_session, email="owner@example.com", password="wrong")
+        await auth.authenticate(
+            SqlAlchemyAccounts(fake_session),
+            Argon2Passwords(),
+            email="owner@example.com",
+            password="wrong",
+        )
 
 
 async def test_authenticate_rejects_unknown_email(fake_session):
     with pytest.raises(InvalidCredentialsError):
-        await auth.authenticate(fake_session, email="nobody@example.com", password="Secret123")
+        await auth.authenticate(
+            SqlAlchemyAccounts(fake_session),
+            Argon2Passwords(),
+            email="nobody@example.com",
+            password="Secret123",
+        )
 
 
 async def test_get_user_returns_none_for_unknown_id(fake_session):
     owner = await auth.create_owner(
-        fake_session, email="owner@example.com", name="Owner", password="Secret123"
+        SqlAlchemyAccounts(fake_session),
+        Argon2Passwords(),
+        email="owner@example.com",
+        name="Owner",
+        password="Secret123",
     )
 
-    found = await auth.get_user(fake_session, owner.id)
-    missing = await auth.get_user(fake_session, owner.id.__class__(int=0))
+    found = await auth.get_user(SqlAlchemyAccounts(fake_session), owner.id)
+    missing = await auth.get_user(SqlAlchemyAccounts(fake_session), owner.id.__class__(int=0))
 
     assert found is owner
     assert missing is None

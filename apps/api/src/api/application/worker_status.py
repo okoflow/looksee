@@ -12,7 +12,7 @@ from api.adapters.persistence.models import Camera
 from api.adapters.realtime.broadcaster import broadcaster
 from api.adapters.redis.commands import publish_stream_command
 from api.adapters.state.memory import runtime_state
-from api.application.camera_runtime import matches_desired_run, parse_start_command
+from api.application.camera_policy import matches_desired_run, parse_start_command
 from api.domain.enums import CameraStatus
 from shared import StartStream, StopStream, WorkerErrored, WorkerStarted, WorkerStopped
 

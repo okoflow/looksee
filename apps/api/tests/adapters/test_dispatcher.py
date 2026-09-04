@@ -17,7 +17,7 @@ def test_extension_actions_dispatch_to_their_own_deliverer():
     action_extensions = [e for e in NODE_EXTENSIONS if issubclass(e.draft, ActionNodeData)]
 
     for extension in action_extensions:
-        assert dispatcher._HANDLERS[extension.draft] is extension.deliver
+        assert dispatcher._HANDLERS[extension.draft] is dispatcher._load_handler(extension.deliver)
 
 
 async def test_dispatch_selects_the_handler_for_the_payload_type(monkeypatch, identity, make_event):

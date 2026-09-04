@@ -116,8 +116,35 @@ async def upsert_camera_path(
     name = camera_path_name(camera_id)
     body = _path_body(source_type, source_url)
 
+    current = await client.get(
+        f"{_API_BASE}/v3/config/paths/get/{name}",
+        timeout=_PATH_TIMEOUT,
+        auth=(settings.mtx_media_user, settings.mtx_media_password),
+    )
+    if current.status_code != 404:
+        current.raise_for_status()
+        # Compare all fields we own, including defaults that reset a previous
+        # source type. Replacing an unchanged path would interrupt its stream.
+        managed = {
+            "source": "publisher",
+            "sourceOnDemand": False,
+            "sourceOnDemandStartTimeout": "10s",
+            "sourceOnDemandCloseAfter": "10s",
+            "runOnDemand": "",
+            "runOnDemandRestart": False,
+            "runOnDemandStartTimeout": "10s",
+            "runOnDemandCloseAfter": "10s",
+        }
+        desired = managed | body
+        actual = current.json()
+        if all(actual.get(key, managed[key]) == value for key, value in desired.items()):
+            return
+
     response = await client.post(
-        f"{_API_BASE}/v3/config/paths/replace/{name}", json=body, timeout=_PATH_TIMEOUT
+        f"{_API_BASE}/v3/config/paths/replace/{name}",
+        json=body,
+        timeout=_PATH_TIMEOUT,
+        auth=(settings.mtx_media_user, settings.mtx_media_password),
     )
 
     response.raise_for_status()
@@ -136,6 +163,7 @@ async def list_path_names() -> set[str]:
             f"{_API_BASE}/v3/config/paths/list",
             params={"itemsPerPage": 1000, "page": page},
             timeout=_PATH_TIMEOUT,
+            auth=(settings.mtx_media_user, settings.mtx_media_password),
         )
         response.raise_for_status()
         payload = response.json()
@@ -155,7 +183,9 @@ async def delete_camera_path(camera_id: UUID) -> None:
 
     try:
         response = await client.delete(
-            f"{_API_BASE}/v3/config/paths/delete/{name}", timeout=_PATH_TIMEOUT
+            f"{_API_BASE}/v3/config/paths/delete/{name}",
+            timeout=_PATH_TIMEOUT,
+            auth=(settings.mtx_media_user, settings.mtx_media_password),
         )
         if response.status_code not in (200, 404):
             response.raise_for_status()

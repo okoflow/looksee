@@ -34,6 +34,7 @@ WORKDIR /app
 
 COPY --from=builder --chown=node:node /repo/apps/studio/.next/standalone ./
 COPY --from=builder --chown=node:node /repo/apps/studio/.next/static ./.next/static
+COPY --from=builder --chown=node:node /repo/apps/studio/public ./public
 
 USER node
 

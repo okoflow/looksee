@@ -9,7 +9,9 @@ import httpx
 
 from api.adapters.actions.formatting import format_template
 from api.adapters.http.client import client
+from api.adapters.http.delivery_errors import http_delivery_error
 from api.adapters.persistence.credentials import read_credential_payload
+from api.application.errors import DeliveryError
 from api.domain.credentials import SlackWebhookPayload
 
 if TYPE_CHECKING:
@@ -29,7 +31,7 @@ async def run_slack(
     credential = await read_credential_payload(config.credential_id, SlackWebhookPayload)
     if credential is None:
         logger.warning("slack credential unavailable node=%s; skipping", identity.node_id)
-        return
+        raise DeliveryError("slack credential unavailable", retryable=False)
 
     message = format_template(config.message_template, event, context)
 
@@ -39,5 +41,6 @@ async def run_slack(
             str(credential.webhook_url), json={"text": message}, timeout=10
         )
         response.raise_for_status()
-    except httpx.HTTPError:
-        logger.exception("slack delivery failed workflow=%s", identity.workflow_id)
+    except httpx.HTTPError as exc:
+        logger.warning("slack delivery failed workflow=%s", identity.workflow_id)
+        raise http_delivery_error(exc) from None

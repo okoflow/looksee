@@ -29,7 +29,10 @@ export async function publishWhip(
   stream: MediaStream,
   signal: AbortSignal
 ): Promise<WhipHandle> {
+  signal.throwIfAborted();
+
   const peerConnection = new RTCPeerConnection({ iceServers: [] });
+  let closeSession: (() => void) | undefined;
 
   for (const track of stream.getTracks()) {
     const transceiver = peerConnection.addTransceiver(track, {
@@ -43,17 +46,15 @@ export async function publishWhip(
   }
 
   const close = () => {
-    for (const sender of peerConnection.getSenders()) {
-      sender.track?.stop();
-    }
-
+    signal.removeEventListener("abort", close);
     peerConnection.close();
+    closeSession?.();
   };
 
   signal.addEventListener("abort", close, { once: true });
 
   try {
-    await negotiateSdp({
+    closeSession = await negotiateSdp({
       authorization,
       mapErrorResponse: whipResponseError,
       peerConnection,

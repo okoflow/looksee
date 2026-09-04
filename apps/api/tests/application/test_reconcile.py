@@ -159,13 +159,13 @@ async def test_missing_paths_are_provisioned_from_the_camera_row(effects, seed_c
     assert effects.upserted_paths == [(camera.id, CameraSource.RTSP, "rtsp://cam.local/stream")]
 
 
-async def test_existing_paths_are_left_alone(effects, seed_camera):
+async def test_existing_paths_are_checked_for_configuration_drift(effects, seed_camera):
     camera = seed_camera()
     effects.path_names.add(str(camera.id))
 
     await reconcile_once()
 
-    assert effects.upserted_paths == []
+    assert effects.upserted_paths == [(camera.id, CameraSource.RTSP, "rtsp://cam.local/stream")]
     assert effects.deleted_paths == []
 
 

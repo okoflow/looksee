@@ -66,15 +66,6 @@ async def test_read_with_another_payload_type_is_none(stored, caplog):
     assert "has type telegram_bot, expected smtp" in caplog.text
 
 
-@pytest.mark.xfail(
-    strict=True,
-    raises=InvalidToken,
-    reason=(
-        "apps/api/src/api/adapters/persistence/credentials.py:65 catches only "
-        "(ValidationError, ValueError); cryptography.fernet.InvalidToken subclasses Exception, "
-        "so a corrupt ciphertext propagates instead of returning None as documented"
-    ),
-)
 async def test_read_of_corrupt_ciphertext_is_none(stored, caplog):
     stored.encrypted_payload = "garbage"
 

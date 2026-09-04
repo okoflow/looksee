@@ -47,12 +47,17 @@ uv sync --all-packages --extra cpu
 pnpm -C apps/studio install --frozen-lockfile
 ```
 
-Run the infrastructure in containers and the services natively. Uncomment the
-"native development" block at the end of `.env` so the services find
-`localhost` instead of the compose service names.
+Run the infrastructure in containers and the services natively. Set private
+`POSTGRES_PASSWORD`, `MTX_MEDIA_PASSWORD`, and `STORAGE_PASSWORD` values in `.env`.
+For native services, set `DATABASE_URL` to the local PostgreSQL address and
+`S3_ENDPOINT_URL=http://localhost:9000`, `S3_ACCESS_KEY_ID=looksee`, and
+`S3_SECRET_ACCESS_KEY` to the storage password. `compose.native.yaml` connects
+MediaMTX to the host API and shares the host playback cache. The API must be
+reachable before media playback starts.
 
 ```bash
-docker compose up -d postgres redis mediamtx
+mkdir -p data/media-cache
+docker compose -f compose.yaml -f compose.native.yaml up -d --build postgres redis mediamtx storage-init
 
 uv run --package looksee-api alembic -c apps/api/alembic.ini upgrade head
 uv run --package looksee-api fastapi dev apps/api/src/api/main.py
@@ -94,7 +99,7 @@ format .` and `pnpm lint:fix` apply the formatting fixes.
 ### Python
 
 - Dependencies point inward: `entrypoints` call `application` use cases, which
-  use `domain` models and `adapters` ports. Keep FastAPI, SQLAlchemy, and
+  use `domain` models and application-owned ports. Keep FastAPI, SQLAlchemy, and
   transport details out of `domain`.
 - Prefer short functions. Separate the logical phases inside a function
   (guards, preparation, action, return) with one blank line, and name
@@ -104,9 +109,9 @@ format .` and `pnpm lint:fix` apply the formatting fixes.
 - Ruff enforces the rule set in `pyproject.toml`, including security (`S`),
   async (`ASYNC`), and timezone (`DTZ`) checks. Do not add `noqa` without a
   reason next to it.
-- The API ships one squashed migration, `0001_initial`. After an ORM change,
-  update it in place and confirm with `alembic check`; do not add incremental
-  revisions before the first stable release.
+- Keep applied migrations immutable. Add a forward migration for ORM changes,
+  test it on a fresh database and an existing database, and confirm with
+  `alembic check`. The delivery outbox starts the incremental history after `0001`.
 - `shared` contracts reject unknown fields and have no legacy aliases. When a
   payload changes, change the API and the inference service in the same pull
   request.
@@ -127,6 +132,9 @@ format .` and `pnpm lint:fix` apply the formatting fixes.
   `apps/inference/tests`, `ee/api/tests`, and run with `uv run pytest`.
 - Unit tests do not need PostgreSQL, Valkey, MediaMTX, or the network. Use the
   in-memory adapters and small fakes for ports.
+- Integration tests use `TEST_DATABASE_URL` and `TEST_REDIS_URL`; without those
+  variables they are skipped. Each PostgreSQL test creates and removes its own
+  schema; Valkey tests use unique keys. CI supplies both services and runs them.
 - Name tests after the behaviour they prove, one module per source module.
 
 ## Commits

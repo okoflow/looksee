@@ -41,11 +41,12 @@ from sqlalchemy.sql.elements import (
 from api.adapters.actions import alerts as alerts_action
 from api.adapters.persistence import credentials as persisted_credentials
 from api.adapters.persistence.db.base import Base
+from api.adapters.persistence.frame_contexts import SqlAlchemyFrameContexts
 from api.adapters.persistence.models import Camera, Credential, Workflow
 from api.adapters.realtime.broadcaster import broadcaster
 from api.adapters.security import keys
 from api.adapters.state.memory import InMemoryRuntimeState
-from api.application import camera_runtime, frame_processing, reconcile, worker_status
+from api.application import camera_runtime, reconcile, worker_status
 from api.application.execution import ExecutionIdentity
 from api.application.frame_processing import FrameProcessingDependencies
 from api.config import settings
@@ -292,6 +293,12 @@ class FakeSession:
         return [scope for scope in pairs if _matches(onclause, scope)]
 
     def _select(self, statement: Select) -> FakeResult:
+        if any(
+            getattr(column, "name", None) == "pg_advisory_xact_lock"
+            for column in statement.selected_columns
+        ):
+            return FakeResult([(None,)])
+
         descriptions = statement.column_descriptions
         entities = list(dict.fromkeys(d["entity"] for d in descriptions if d["entity"] is not None))
         scopes = [
@@ -356,6 +363,7 @@ class EffectRecorder:
     )
     path_names: set[str] = field(default_factory=set)
     cached_names: dict[str, str] = field(default_factory=dict)
+    frames: FrameProcessingDependencies | None = None
     publish_error: Exception | None = None
     upsert_error: Exception | None = None
 
@@ -446,7 +454,6 @@ def effects(
     for module in (
         camera_runtime,
         reconcile,
-        frame_processing,
         alerts_action,
         ws,
         persisted_credentials,
@@ -461,18 +468,15 @@ def effects(
     monkeypatch.setattr(reconcile, "delete_camera_path", delete_path)
     monkeypatch.setattr(reconcile, "list_path_names", list_names)
     monkeypatch.setattr(broadcaster, "publish", realtime)
-    monkeypatch.setattr(
-        frame_processing,
-        "_dependencies",
-        FrameProcessingDependencies(
-            catalog=catalog,
-            publish_command=publish,
-            runtime_state=recorder.runtime_state,
-            event_cooldown_seconds=0.0,
-            event_timezone=ZoneInfo("UTC"),
-            publish_realtime=realtime,
-            run_action=run_action,
-        ),
+    recorder.frames = FrameProcessingDependencies(
+        contexts=SqlAlchemyFrameContexts(lambda: fake_session),
+        catalog=catalog,
+        publish_command=publish,
+        runtime_state=recorder.runtime_state,
+        event_cooldown_seconds=0.0,
+        event_timezone=ZoneInfo("UTC"),
+        publish_realtime=realtime,
+        run_action=run_action,
     )
 
     return recorder

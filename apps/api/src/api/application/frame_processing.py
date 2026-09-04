@@ -7,19 +7,10 @@ import logging
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Protocol
 
-from sqlalchemy import select
-
-from api.adapters.actions.dispatcher import dispatch_action
-from api.adapters.filesystem.model_catalog import model_catalog
-from api.adapters.persistence.db import session_factory
-from api.adapters.persistence.models import Camera, Workflow
-from api.adapters.realtime.broadcaster import broadcaster
-from api.adapters.redis.commands import publish_stream_command
-from api.adapters.state.memory import runtime_state
-from api.application.camera_runtime import matches_desired_run, parse_start_command
+from api.application.camera_policy import matches_desired_run, parse_start_command
+from api.application.errors import RetryableFrameError
 from api.application.events import derive_events
 from api.application.execution import ActionRunner, ExecutionIdentity, execute_event
-from api.config import settings
 from api.domain.errors import WorkflowGraphError
 from api.domain.graph import WorkflowGraphIndex
 from api.domain.workflow import RuntimeState, WorkflowGraph
@@ -27,6 +18,7 @@ from shared import DetectionFrame, StartStream, StopStream, StreamCommand
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
+    from contextlib import AbstractContextManager
     from uuid import UUID
     from zoneinfo import ZoneInfo
 
@@ -40,7 +32,23 @@ type CommandPublisher = Callable[[StreamCommand], Awaitable[None]]
 type RealtimePublisher = Callable[[UUID, dict[str, Any]], Awaitable[None]]
 
 
+@dataclass(frozen=True, slots=True)
+class CameraFrameContext:
+    workflow_id: UUID
+    node_id: str
+    name: str
+    start_command: dict[str, Any] | None
+    enabled: bool
+    graph: dict[str, Any]
+
+
+class FrameContextReader(Protocol):
+    async def load(self, camera_id: UUID) -> CameraFrameContext | None: ...
+
+
 class FrameRuntimeState(RuntimeState, Protocol):
+    def transaction(self) -> AbstractContextManager[None]: ...
+
     def event_cooldown_ready(
         self,
         camera_id: UUID,
@@ -56,6 +64,7 @@ class FrameRuntimeState(RuntimeState, Protocol):
 class FrameProcessingDependencies:
     """Effects and configuration one frame needs, mirroring inference's WorkerDependencies."""
 
+    contexts: FrameContextReader
     catalog: ModelCatalogReader
     publish_command: CommandPublisher
     runtime_state: FrameRuntimeState
@@ -63,17 +72,6 @@ class FrameProcessingDependencies:
     event_timezone: ZoneInfo
     publish_realtime: RealtimePublisher
     run_action: ActionRunner
-
-
-_dependencies = FrameProcessingDependencies(
-    catalog=model_catalog,
-    publish_command=publish_stream_command,
-    runtime_state=runtime_state,
-    event_cooldown_seconds=settings.event_cooldown_seconds,
-    event_timezone=settings.event_timezone,
-    publish_realtime=broadcaster.publish,
-    run_action=dispatch_action,
-)
 
 
 @dataclass(frozen=True, slots=True)
@@ -84,15 +82,17 @@ class _FrameContext:
     identity: ExecutionIdentity
 
 
-async def handle_detection_frame(frame: DetectionFrame) -> None:
-    context, should_stop = await _load_frame_context(frame)
+async def handle_detection_frame(
+    frame: DetectionFrame, dependencies: FrameProcessingDependencies
+) -> None:
+    context, should_stop = await _load_frame_context(frame, dependencies.contexts)
     if should_stop:
-        await _stop_frame_run(frame, _dependencies.publish_command)
+        await _stop_frame_run(frame, dependencies.publish_command)
         return
     if context is None:
         return
 
-    model = await asyncio.to_thread(_dependencies.catalog.get, context.desired.config.model_id)
+    model = await asyncio.to_thread(dependencies.catalog.get, context.desired.config.model_id)
     if model is None:
         logger.warning("dropping frame for unavailable model=%s", context.desired.config.model_id)
         return
@@ -104,8 +104,10 @@ async def handle_detection_frame(frame: DetectionFrame) -> None:
             context.index,
             context.source_node_id,
             context.identity,
-            _dependencies,
+            dependencies,
         )
+    except RetryableFrameError:
+        raise
     except Exception:
         logger.exception("frame processing failed camera=%s", frame.camera_id)
 
@@ -130,62 +132,50 @@ async def process_frame(
     )
 
     for event in derive_events(frame, model):
-        if not dependencies.runtime_state.event_cooldown_ready(
+        if dependencies.runtime_state.event_cooldown_ready(
             event.camera_id,
             identity.run_id,
             event.kind,
             dependencies.event_cooldown_seconds,
         ):
-            continue
-
-        await dependencies.publish_realtime(
-            event.camera_id,
-            {
-                "type": "event",
-                "kind": event.kind,
-                "ts": event.ts.isoformat(),
-                "frame_width": event.frame_width,
-                "frame_height": event.frame_height,
-                "detections": [detection.model_dump(mode="json") for detection in event.detections],
-            },
-        )
-        await execute_event(
-            index,
-            source_node_id,
-            identity,
-            event,
-            dependencies.event_timezone,
-            dependencies.runtime_state,
-            dependencies.run_action,
-        )
-
-        dependencies.runtime_state.touch_event_cooldown(
-            event.camera_id,
-            identity.run_id,
-            event.kind,
-        )
-
-
-async def _load_frame_context(frame: DetectionFrame) -> tuple[_FrameContext | None, bool]:
-    try:
-        async with session_factory() as session:
-            result = await session.execute(
-                select(
-                    Camera.workflow_id,
-                    Camera.node_id,
-                    Camera.name,
-                    Camera.start_command,
-                    Workflow.enabled,
-                    Workflow.graph,
-                )
-                .join(Workflow, Workflow.id == Camera.workflow_id)
-                .where(Camera.id == frame.camera_id)
+            await dependencies.publish_realtime(
+                event.camera_id,
+                {
+                    "type": "event",
+                    "kind": event.kind,
+                    "ts": event.ts.isoformat(),
+                    "frame_width": event.frame_width,
+                    "frame_height": event.frame_height,
+                    "detections": [
+                        detection.model_dump(mode="json") for detection in event.detections
+                    ],
+                },
             )
-            row = result.one_or_none()
+            dependencies.runtime_state.touch_event_cooldown(
+                event.camera_id, identity.run_id, event.kind
+            )
+
+        with dependencies.runtime_state.transaction():
+            await execute_event(
+                index,
+                source_node_id,
+                identity,
+                event,
+                dependencies.event_timezone,
+                dependencies.runtime_state,
+                dependencies.run_action,
+            )
+
+
+async def _load_frame_context(
+    frame: DetectionFrame, contexts: FrameContextReader
+) -> tuple[_FrameContext | None, bool]:
+    try:
+        row = await contexts.load(frame.camera_id)
     except Exception:
         logger.exception("camera/workflow lookup failed camera=%s", frame.camera_id)
 
-        return None, False
+        raise RetryableFrameError("camera context temporarily unavailable") from None
 
     if row is None:
         return None, True

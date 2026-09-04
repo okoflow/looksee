@@ -14,8 +14,6 @@ export const publicRuntimeEnvironmentSchema = z.object({
   apiUrl: httpUrlSchema,
   docsUrl: httpUrlSchema,
   githubUrl: httpUrlSchema,
-  mediamtxMediaPassword: z.string().max(512),
-  mediamtxMediaUser: z.string().min(1).max(256),
   mediamtxWebRTCUrl: httpUrlSchema,
   webSocketUrl: webSocketUrlSchema,
 });
@@ -30,12 +28,10 @@ declare global {
 
 export const runtimeEnvironmentDefaults = publicRuntimeEnvironmentSchema.parse({
   apiUrl: "http://localhost:8000",
-  docsUrl: "http://localhost:3002/docs",
+  docsUrl: "https://github.com/okoflow/looksee-docs",
   githubUrl: "https://github.com/okoflow/looksee",
   webSocketUrl: "ws://localhost:8000",
   mediamtxWebRTCUrl: "http://localhost:8889",
-  mediamtxMediaUser: "media",
-  mediamtxMediaPassword: "looksee",
 });
 
 const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1"]);
@@ -96,10 +92,4 @@ export function getWebSocketUrl(): string {
 
 export function getMediamtxWebRTCUrl(): string {
   return clientEnvironment().mediamtxWebRTCUrl;
-}
-
-export function getMediamtxMediaAuthorization(): string {
-  const { mediamtxMediaUser, mediamtxMediaPassword } = clientEnvironment();
-
-  return `Basic ${btoa(`${mediamtxMediaUser}:${mediamtxMediaPassword}`)}`;
 }

@@ -39,14 +39,6 @@ def test_unknown_type_is_a_validation_error(client, owner):
     assert response.status_code == 422
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason=(
-        "payload contract violations raise pydantic.ValidationError inside the use case "
-        "(apps/api/src/api/application/credentials.py:39) and no handler in "
-        "apps/api/src/api/entrypoints/http/errors.py maps it, so clients get a 500"
-    ),
-)
 def test_invalid_payload_is_a_validation_error(client, owner):
     lenient = TestClient(client.app, raise_server_exceptions=False, cookies=client.cookies)
 

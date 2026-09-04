@@ -28,7 +28,11 @@ class CameraBroadcaster:
 
     async def leave(self, camera_id: UUID, websocket: WebSocket) -> None:
         async with self._lock:
-            self._rooms.get(camera_id, set()).discard(websocket)
+            room = self._rooms.get(camera_id)
+            if room is not None:
+                room.discard(websocket)
+                if not room:
+                    self._rooms.pop(camera_id, None)
 
     async def publish(self, camera_id: UUID, payload: dict[str, Any]) -> None:
         async with self._lock:
@@ -65,6 +69,8 @@ class CameraBroadcaster:
 
             if room is not None:
                 room.difference_update(dead)
+                if not room:
+                    self._rooms.pop(camera_id, None)
 
 
 broadcaster = CameraBroadcaster()

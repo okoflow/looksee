@@ -5,6 +5,8 @@ to SECRET_KEY_FILE, so a fresh install needs no configuration.
 """
 
 import base64
+import fcntl
+import os
 import secrets
 from functools import cache
 
@@ -23,20 +25,28 @@ def _process_secret() -> bytes:
         return settings.secret_key.encode()
 
     path = settings.secret_key_file
-    if path.is_file():
-        stored = path.read_bytes().strip()
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    # All readers lock the same file, including during concurrent first boot.
+    descriptor = os.open(path, os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW, 0o600)
+    with os.fdopen(descriptor, "r+b") as secret_file:
+        fcntl.flock(secret_file, fcntl.LOCK_EX)
+        os.fchmod(secret_file.fileno(), 0o600)
+        stored = secret_file.read().strip()
         if stored:
             return stored
 
-    generated = secrets.token_urlsafe(48).encode()
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.touch(mode=0o600, exist_ok=True)
-    path.write_bytes(generated)
+        generated = secrets.token_urlsafe(48).encode()
+        secret_file.seek(0)
+        secret_file.write(generated)
+        secret_file.truncate()
+        secret_file.flush()
+        os.fsync(secret_file.fileno())
 
-    return generated
+        return generated
 
 
-def _derive(context: bytes) -> bytes:
+def derive_key(context: bytes) -> bytes:
     kdf = HKDF(algorithm=SHA256(), length=_KEY_LENGTH, salt=None, info=context)
 
     return kdf.derive(_process_secret())
@@ -44,9 +54,9 @@ def _derive(context: bytes) -> bytes:
 
 @cache
 def session_signing_key() -> bytes:
-    return _derive(b"looksee.sessions")
+    return derive_key(b"looksee.sessions")
 
 
 @cache
 def credentials_fernet() -> Fernet:
-    return Fernet(base64.urlsafe_b64encode(_derive(b"looksee.credentials")))
+    return Fernet(base64.urlsafe_b64encode(derive_key(b"looksee.credentials")))

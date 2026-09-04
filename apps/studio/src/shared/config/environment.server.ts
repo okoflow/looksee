@@ -20,8 +20,6 @@ const serverEnvironmentSchema = z.object({
   RUNTIME_API_URL: environmentVariableSchema,
   RUNTIME_DOCS_URL: environmentVariableSchema,
   RUNTIME_GITHUB_URL: environmentVariableSchema,
-  RUNTIME_MEDIAMTX_MEDIA_PASSWORD: environmentVariableSchema,
-  RUNTIME_MEDIAMTX_MEDIA_USER: environmentVariableSchema,
   RUNTIME_MEDIAMTX_WEBRTC_URL: environmentVariableSchema,
   RUNTIME_WS_URL: environmentVariableSchema,
   SERVER_API_URL: environmentVariableSchema,
@@ -45,8 +43,5 @@ export function readRuntimeEnvironment(): PublicRuntimeEnvironment {
     githubUrl: variables.RUNTIME_GITHUB_URL ?? runtimeEnvironmentDefaults.githubUrl,
     webSocketUrl: variables.RUNTIME_WS_URL ?? runtimeEnvironmentDefaults.webSocketUrl,
     mediamtxWebRTCUrl: variables.RUNTIME_MEDIAMTX_WEBRTC_URL ?? runtimeEnvironmentDefaults.mediamtxWebRTCUrl,
-    mediamtxMediaUser: variables.RUNTIME_MEDIAMTX_MEDIA_USER ?? runtimeEnvironmentDefaults.mediamtxMediaUser,
-    mediamtxMediaPassword:
-      variables.RUNTIME_MEDIAMTX_MEDIA_PASSWORD ?? runtimeEnvironmentDefaults.mediamtxMediaPassword,
   });
 }

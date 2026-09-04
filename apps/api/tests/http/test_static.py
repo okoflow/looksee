@@ -12,10 +12,22 @@ from api.entrypoints.http.static import AuthenticatedStaticFiles
 
 
 @pytest.fixture
-def client(tmp_path):
+def active_users():
+    return set()
+
+
+@pytest.fixture
+def client(tmp_path, active_users):
+    async def user_exists(user_id):
+        return user_id in active_users
+
     (tmp_path / "evidence.jpg").write_bytes(b"jpeg")
     app = Starlette()
-    app.mount("/snapshots", AuthenticatedStaticFiles(directory=tmp_path), name="snapshots")
+    app.mount(
+        "/snapshots",
+        AuthenticatedStaticFiles(directory=tmp_path, user_exists=user_exists),
+        name="snapshots",
+    )
 
     return TestClient(app)
 
@@ -33,8 +45,10 @@ def test_invalid_cookie_is_rejected(client):
     assert client.get("/snapshots/evidence.jpg").status_code == 401
 
 
-def test_valid_session_serves_the_file(client):
-    client.cookies.set(SESSION_COOKIE, issue_session_token(uuid4()))
+def test_valid_session_serves_the_file(client, active_users):
+    user_id = uuid4()
+    active_users.add(user_id)
+    client.cookies.set(SESSION_COOKIE, issue_session_token(user_id))
 
     response = client.get("/snapshots/evidence.jpg")
 
@@ -42,7 +56,21 @@ def test_valid_session_serves_the_file(client):
     assert response.content == b"jpeg"
 
 
-def test_valid_session_still_gets_not_found_for_missing_files(client):
-    client.cookies.set(SESSION_COOKIE, issue_session_token(uuid4()))
+def test_valid_session_still_gets_not_found_for_missing_files(client, active_users):
+    user_id = uuid4()
+    active_users.add(user_id)
+    client.cookies.set(SESSION_COOKIE, issue_session_token(user_id))
 
     assert client.get("/snapshots/missing.jpg").status_code == 404
+
+
+def test_deleted_user_loses_snapshot_access_immediately(client, active_users):
+    user_id = uuid4()
+    active_users.add(user_id)
+    client.cookies.set(SESSION_COOKIE, issue_session_token(user_id))
+
+    assert client.get("/snapshots/evidence.jpg").status_code == 200
+
+    active_users.remove(user_id)
+
+    assert client.get("/snapshots/evidence.jpg").status_code == 401

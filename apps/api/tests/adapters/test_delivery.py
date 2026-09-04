@@ -9,6 +9,7 @@ import httpx
 import pytest
 
 import api.adapters.actions.delivery as delivery
+from api.application.errors import DeliveryError
 from api.domain.credentials import (
     DiscordWebhookPayload,
     MqttPayload,
@@ -67,6 +68,7 @@ async def test_webhook_sends_the_event_payload_with_the_configured_method(
     await delivery.run_webhook(identity, event, config, {"snapshot_url": "/snapshots/a.jpg"})
 
     [request] = transport.requests
+
     assert request.method == "PUT"
     assert str(request.url) == "https://hooks.example.com/looksee"
     assert json.loads(request.content) == {
@@ -78,14 +80,15 @@ async def test_webhook_sends_the_event_payload_with_the_configured_method(
     }
 
 
-async def test_webhook_failure_is_logged_not_raised(transport, identity, make_event, caplog):
+async def test_webhook_failure_is_reported_safely(transport, identity, make_event, caplog):
     transport.responder["status"] = 502
 
-    await delivery.run_webhook(
-        identity, make_event(), WebhookActionData(url="https://x.example"), {}
-    )
+    with pytest.raises(DeliveryError):
+        await delivery.run_webhook(
+            identity, make_event(), WebhookActionData(url="https://x.example"), {}
+        )
 
-    assert "webhook delivery failed url=https://x.example" in caplog.text
+    assert "webhook delivery failed node=" in caplog.text
 
 
 async def test_telegram_without_credential_sends_nothing(
@@ -93,7 +96,8 @@ async def test_telegram_without_credential_sends_nothing(
 ):
     config = TelegramActionData(credential_id=CREDENTIAL_ID, chat_id="42")
 
-    await delivery.run_telegram(identity, make_event(), config, {})
+    with pytest.raises(DeliveryError):
+        await delivery.run_telegram(identity, make_event(), config, {})
 
     assert credential["lookups"] == [(CREDENTIAL_ID, TelegramBotPayload)]
     assert transport.requests == []
@@ -109,6 +113,7 @@ async def test_telegram_sends_a_formatted_message(transport, credential, identit
     await delivery.run_telegram(identity, make_event(), config, {})
 
     [request] = transport.requests
+
     assert str(request.url) == "https://api.telegram.org/bot123:secret-token/sendMessage"
     assert json.loads(request.content) == {"chat_id": "42", "text": "PERSON_DETECTED x1"}
 
@@ -122,41 +127,43 @@ async def test_telegram_attaches_the_snapshot_as_a_photo(
     await delivery.run_telegram(identity, make_event(), config, {"snapshot_jpeg": b"jpeg-bytes"})
 
     [request] = transport.requests
+
     assert request.url.path.endswith("/sendPhoto")
     assert request.headers["content-type"].startswith("multipart/form-data")
     assert b'filename="snapshot.jpg"' in request.content
     assert b"jpeg-bytes" in request.content
 
 
-async def test_telegram_failure_is_logged_not_raised(
+async def test_telegram_failure_is_reported_safely(
     transport, credential, identity, make_event, caplog
 ):
     credential["payload"] = TelegramBotPayload(bot_token="123:secret-token")
     transport.responder["status"] = 401
 
-    await delivery.run_telegram(
-        identity, make_event(), TelegramActionData(credential_id=CREDENTIAL_ID, chat_id="42"), {}
-    )
+    with pytest.raises(DeliveryError):
+        await delivery.run_telegram(
+            identity,
+            make_event(),
+            TelegramActionData(credential_id=CREDENTIAL_ID, chat_id="42"),
+            {},
+        )
 
     assert "telegram delivery failed chat=42" in caplog.text
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason=(
-        "apps/api/src/api/adapters/actions/delivery.py:92-93 logs the httpx failure with "
-        "logger.exception, whose message carries the request URL and thus the bot token"
-    ),
-)
 async def test_telegram_failure_log_never_leaks_the_bot_token(
     transport, credential, identity, make_event, caplog
 ):
     credential["payload"] = TelegramBotPayload(bot_token="123:secret-token")
     transport.responder["status"] = 401
 
-    await delivery.run_telegram(
-        identity, make_event(), TelegramActionData(credential_id=CREDENTIAL_ID, chat_id="42"), {}
-    )
+    with pytest.raises(DeliveryError):
+        await delivery.run_telegram(
+            identity,
+            make_event(),
+            TelegramActionData(credential_id=CREDENTIAL_ID, chat_id="42"),
+            {},
+        )
 
     assert "secret-token" not in caplog.text
 
@@ -172,12 +179,13 @@ async def test_discord_truncates_to_the_platform_limit(
     await delivery.run_discord(identity, make_event(), config, {})
 
     [request] = transport.requests
+
     assert str(request.url) == "https://discord.com/api/webhooks/1/tok"
     assert json.loads(request.content) == {"content": "x" * 1990 + "PERSON_DET"}
     assert "discord message truncated to 2000 chars" in caplog.text
 
 
-async def test_discord_failure_is_logged_not_raised(
+async def test_discord_failure_is_reported_safely(
     transport, credential, identity, make_event, caplog
 ):
     credential["payload"] = DiscordWebhookPayload(
@@ -185,20 +193,14 @@ async def test_discord_failure_is_logged_not_raised(
     )
     transport.responder["status"] = 500
 
-    await delivery.run_discord(
-        identity, make_event(), DiscordActionData(credential_id=CREDENTIAL_ID), {}
-    )
+    with pytest.raises(DeliveryError):
+        await delivery.run_discord(
+            identity, make_event(), DiscordActionData(credential_id=CREDENTIAL_ID), {}
+        )
 
     assert "discord delivery failed" in caplog.text
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason=(
-        "apps/api/src/api/adapters/actions/delivery.py:186-187 logs the httpx failure with "
-        "logger.exception, whose message carries the webhook URL and thus its token"
-    ),
-)
 async def test_discord_failure_log_never_leaks_the_webhook(
     transport, credential, identity, make_event, caplog
 ):
@@ -207,9 +209,10 @@ async def test_discord_failure_log_never_leaks_the_webhook(
     )
     transport.responder["status"] = 500
 
-    await delivery.run_discord(
-        identity, make_event(), DiscordActionData(credential_id=CREDENTIAL_ID), {}
-    )
+    with pytest.raises(DeliveryError):
+        await delivery.run_discord(
+            identity, make_event(), DiscordActionData(credential_id=CREDENTIAL_ID), {}
+        )
 
     assert "webhooks/1/tok" not in caplog.text
 
@@ -248,6 +251,7 @@ class TestEmail:
         await delivery.run_email(identity, event, config, {"snapshot_jpeg": b"jpeg"})
 
         [(message, kwargs)] = smtp
+
         assert message["From"] == "alerts@example.com"
         assert message["To"] == "ops@example.com"
         assert message["Subject"] == "[PERSON_DETECTED]  Bcc: evil@example.com"
@@ -281,23 +285,25 @@ class TestEmail:
         assert smtp[0][0]["From"] == expected_from
         assert list(smtp[0][0].iter_attachments()) == []
 
-    async def test_smtp_failure_is_logged_not_raised(
+    async def test_smtp_failure_is_reported_safely(
         self, smtp, credential, identity, make_event, caplog
     ):
         credential["payload"] = SmtpPayload(host="down.example.com")
 
-        await delivery.run_email(
-            identity, make_event(), EmailActionData(credential_id=CREDENTIAL_ID, to="a@b"), {}
-        )
+        with pytest.raises(DeliveryError):
+            await delivery.run_email(
+                identity, make_event(), EmailActionData(credential_id=CREDENTIAL_ID, to="a@b"), {}
+            )
 
         assert "email delivery failed to=a@b" in caplog.text
 
-    async def test_missing_credential_skips_delivery(
+    async def test_missing_credential_is_reported(
         self, smtp, credential, identity, make_event, caplog
     ):
-        await delivery.run_email(
-            identity, make_event(), EmailActionData(credential_id=CREDENTIAL_ID, to="a@b"), {}
-        )
+        with pytest.raises(DeliveryError):
+            await delivery.run_email(
+                identity, make_event(), EmailActionData(credential_id=CREDENTIAL_ID, to="a@b"), {}
+            )
 
         assert smtp == []
         assert "smtp credential unavailable" in caplog.text
@@ -339,6 +345,7 @@ class TestMqtt:
         )
 
         [(topic, payload)] = broker["published"]
+
         assert topic == "site/events"
         assert json.loads(payload)["camera_id"] == str(event.camera_id)
         assert broker["connections"] == [
@@ -361,15 +368,16 @@ class TestMqtt:
 
         assert broker["published"] == [("looksee/events", "PERSON_DETECTED:1")]
 
-    async def test_broker_failure_is_logged_not_raised(
+    async def test_broker_failure_is_reported_safely(
         self, broker, credential, identity, make_event, caplog
     ):
         credential["payload"] = MqttPayload(host="broker.local")
         broker["fail"] = True
 
-        await delivery.run_mqtt(
-            identity, make_event(), MqttActionData(credential_id=CREDENTIAL_ID), {}
-        )
+        with pytest.raises(DeliveryError):
+            await delivery.run_mqtt(
+                identity, make_event(), MqttActionData(credential_id=CREDENTIAL_ID), {}
+            )
 
         assert broker["published"] == []
         assert "mqtt publish failed topic=looksee/events" in caplog.text

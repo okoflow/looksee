@@ -68,7 +68,8 @@ async def test_upsert_replaces_the_camera_path(transport):
 
     await mediamtx.upsert_camera_path(camera_id, CameraSource.RTSP, "rtsp://cam/live")
 
-    [request] = transport.requests
+    [inspection, request] = transport.requests
+    assert inspection.method == "GET"
     assert request.method == "POST"
     assert request.url.path == f"/v3/config/paths/replace/{camera_id}"
     assert json.loads(request.content)["source"] == "rtsp://cam/live"
@@ -79,6 +80,48 @@ async def test_upsert_surfaces_control_plane_failures(transport):
 
     with pytest.raises(httpx.HTTPStatusError):
         await mediamtx.upsert_camera_path(uuid4(), CameraSource.RTSP, "rtsp://cam/live")
+
+
+async def test_unchanged_path_is_not_replaced_or_interrupted(transport):
+    transport.responder["handle"] = lambda request: httpx.Response(
+        200,
+        json={"source": "rtsp://cam/live", **ON_DEMAND},
+    )
+
+    await mediamtx.upsert_camera_path(uuid4(), CameraSource.RTSP, "rtsp://cam/live")
+
+    assert [request.method for request in transport.requests] == ["GET"]
+
+
+async def test_changing_source_type_resets_previous_ingest_configuration(transport):
+    transport.responder["handle"] = lambda request: httpx.Response(
+        200,
+        json={"source": "rtsp://old/live", **ON_DEMAND},
+    )
+
+    await mediamtx.upsert_camera_path(uuid4(), CameraSource.WEBRTC, None)
+
+    assert [request.method for request in transport.requests] == ["GET", "POST"]
+    assert json.loads(transport.requests[-1].content) == {}
+
+
+async def test_failed_reconfiguration_is_retried_on_next_pass(transport):
+    def fail_update(request):
+        if request.method == "POST":
+            return httpx.Response(503)
+
+        return httpx.Response(200, json={"source": "rtsp://old/live", **ON_DEMAND})
+
+    transport.responder["handle"] = fail_update
+    camera_id = uuid4()
+
+    with pytest.raises(httpx.HTTPStatusError):
+        await mediamtx.upsert_camera_path(camera_id, CameraSource.RTSP, "rtsp://new/live")
+
+    transport.responder["handle"] = lambda request: httpx.Response(200, json={})
+    await mediamtx.upsert_camera_path(camera_id, CameraSource.RTSP, "rtsp://new/live")
+
+    assert [request.method for request in transport.requests] == ["GET", "POST", "GET", "POST"]
 
 
 async def test_list_walks_every_page(transport):

@@ -9,21 +9,25 @@ accepts them. boto3 is synchronous, so every wrapper runs it in a thread.
 from __future__ import annotations
 
 import asyncio
+import logging
 from dataclasses import dataclass
 from functools import cache
 from typing import TYPE_CHECKING, Any, BinaryIO
 
 import boto3
 from botocore.config import Config
-from botocore.exceptions import ClientError
+from botocore.exceptions import BotoCoreError, ClientError
 
+from api.application.errors import AssetStoreUnavailableError
 from api.config import settings
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from datetime import datetime
     from pathlib import Path
 
 _MISSING_OBJECT_CODES = {"404", "NoSuchKey", "NotFound"}
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True, slots=True)
@@ -47,10 +51,23 @@ def _client() -> Any:
         aws_secret_access_key=settings.s3_secret_access_key,
         region_name=settings.s3_region,
         config=Config(
+            connect_timeout=5,
+            read_timeout=30,
+            retries={"mode": "standard", "total_max_attempts": 3},
             request_checksum_calculation="when_required",
             response_checksum_validation="when_required",
         ),
     )
+
+
+async def _run_operation[Result](
+    operation: Callable[..., Result], *args: Any, **kwargs: Any
+) -> Result:
+    try:
+        return await asyncio.to_thread(operation, *args, **kwargs)
+    except (BotoCoreError, ClientError, OSError) as error:
+        logger.warning("asset storage operation failed error=%s", type(error).__name__)
+        raise AssetStoreUnavailableError from None
 
 
 def _object_key(key: str) -> str:
@@ -80,7 +97,7 @@ def _list_assets_sync() -> list[StoredAsset]:
 
 
 async def list_assets() -> list[StoredAsset]:
-    return await asyncio.to_thread(_list_assets_sync)
+    return await _run_operation(_list_assets_sync)
 
 
 def _head_asset_sync(key: str) -> StoredAsset | None:
@@ -96,26 +113,47 @@ def _head_asset_sync(key: str) -> StoredAsset | None:
 
 
 async def head_asset(key: str) -> StoredAsset | None:
-    return await asyncio.to_thread(_head_asset_sync, key)
+    return await _run_operation(_head_asset_sync, key)
 
 
 async def upload_asset(key: str, fileobj: BinaryIO, content_type: str) -> None:
-    await asyncio.to_thread(
-        _client().upload_fileobj,
-        fileobj,
-        settings.s3_bucket,
-        _object_key(key),
-        ExtraArgs={"ContentType": content_type},
+    await _run_operation(
+        lambda: _client().upload_fileobj(
+            fileobj,
+            settings.s3_bucket,
+            _object_key(key),
+            ExtraArgs={"ContentType": content_type},
+        ),
     )
 
 
 async def download_asset(key: str, destination: Path) -> None:
-    await asyncio.to_thread(
-        _client().download_file, settings.s3_bucket, _object_key(key), str(destination)
+    await _run_operation(
+        lambda: _client().download_file(settings.s3_bucket, _object_key(key), str(destination))
     )
 
 
 async def delete_asset(key: str) -> None:
-    await asyncio.to_thread(
-        _client().delete_object, Bucket=settings.s3_bucket, Key=_object_key(key)
+    await _run_operation(
+        lambda: _client().delete_object(Bucket=settings.s3_bucket, Key=_object_key(key))
     )
+
+
+def _ensure_bucket_sync() -> None:
+    client = _client()
+    try:
+        client.head_bucket(Bucket=settings.s3_bucket)
+        return
+    except ClientError as error:
+        if error.response.get("Error", {}).get("Code") not in {"404", "NoSuchBucket", "NotFound"}:
+            raise
+
+    try:
+        client.create_bucket(Bucket=settings.s3_bucket)
+    except ClientError as error:
+        if error.response.get("Error", {}).get("Code") != "BucketAlreadyOwnedByYou":
+            raise
+
+
+async def ensure_bucket() -> None:
+    await _run_operation(_ensure_bucket_sync)

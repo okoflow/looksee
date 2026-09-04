@@ -1,6 +1,7 @@
 export { DROP_OFFSET_X, DROP_OFFSET_Y, NODE_DRAG_MIME } from "./config/node-drag";
 export { useEditorHotkeys } from "./lib/use-editor-hotkeys";
 export {
+  acknowledgeSaveAtom,
   addCommentAtom,
   addNodeAtom,
   applyEdgeChangesAtom,
