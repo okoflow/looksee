@@ -1,8 +1,8 @@
 "use client";
 
 import { type RefObject, useEffect, useRef, useState } from "react";
-import { getMediamtxMediaAuthorization } from "@/shared/config";
 import { runWhepSession, type WhepSessionState } from "@/shared/lib/webrtc";
+import { getCameraMediaAuthorization } from "@/entities/camera";
 import { cameraWhepUrl } from "../api/mediamtx";
 
 interface WhepStream {
@@ -29,7 +29,9 @@ export function useWhepStream(cameraId: string, isEnabled: boolean): WhepStream 
 
     runWhepSession({
       url: cameraWhepUrl(cameraId),
-      authorization: getMediamtxMediaAuthorization(),
+      getAuthorization: () => {
+        return getCameraMediaAuthorization(cameraId, "read", controller.signal);
+      },
       video,
       signal: controller.signal,
       onStateChange: setState,

@@ -1,10 +1,13 @@
 """Accepted frames: realtime fan-out, cooldown, and run fencing against persisted state."""
 
 from dataclasses import replace
+from datetime import timedelta
 from uuid import uuid4
 
+import pytest
+
 from api.adapters.persistence.models import Camera, Workflow
-from api.application import frame_processing
+from api.application.errors import RetryableFrameError
 from api.application.execution import ExecutionIdentity
 from api.application.frame_processing import handle_detection_frame, process_frame
 from api.domain.enums import CameraSource, CameraStatus
@@ -12,15 +15,8 @@ from api.domain.graph import WorkflowGraphIndex
 from shared import StartStream, StopStream, WorkflowConfig
 
 
-async def run(frame, index, identity, people_model, dependencies=None):
-    await process_frame(
-        frame,
-        people_model,
-        index,
-        "cam",
-        identity,
-        dependencies if dependencies is not None else frame_processing._dependencies,
-    )
+async def run(frame, index, identity, people_model, dependencies):
+    await process_frame(frame, people_model, index, "cam", identity, dependencies)
 
 
 async def test_frame_publishes_detections_then_event_then_runs_actions(
@@ -28,7 +24,7 @@ async def test_frame_publishes_detections_then_event_then_runs_actions(
 ):
     frame = make_frame()
 
-    await run(frame, WorkflowGraphIndex.build(basic_graph), identity, people_model)
+    await run(frame, WorkflowGraphIndex.build(basic_graph), identity, people_model, effects.frames)
 
     assert effects.realtime_types() == ["detections", "event"]
     assert effects.realtime[0][0] == frame.camera_id
@@ -42,16 +38,16 @@ async def test_frame_without_events_only_publishes_detections(
 ):
     frame = make_frame(detections=(make_detection(label="background", class_id=2),))
 
-    await run(frame, WorkflowGraphIndex.build(basic_graph), identity, people_model)
+    await run(frame, WorkflowGraphIndex.build(basic_graph), identity, people_model, effects.frames)
 
     assert effects.realtime_types() == ["detections"]
     assert effects.actions == []
 
 
-async def test_repeated_event_kind_is_suppressed_within_cooldown(
+async def test_cooldown_limits_realtime_without_skipping_workflow_execution(
     effects, basic_graph, make_frame, identity, people_model
 ):
-    dependencies = replace(frame_processing._dependencies, event_cooldown_seconds=2.0)
+    dependencies = replace(effects.frames, event_cooldown_seconds=2.0)
     index = WorkflowGraphIndex.build(basic_graph)
     camera_id = uuid4()
 
@@ -59,11 +55,11 @@ async def test_repeated_event_kind_is_suppressed_within_cooldown(
     await run(make_frame(camera_id=camera_id), index, identity, people_model, dependencies)
 
     assert effects.realtime_types() == ["detections", "event", "detections"]
-    assert len(effects.actions) == 1
+    assert len(effects.actions) == 2
 
 
 async def test_cooldown_is_scoped_per_run(effects, basic_graph, make_frame, identity, people_model):
-    dependencies = replace(frame_processing._dependencies, event_cooldown_seconds=2.0)
+    dependencies = replace(effects.frames, event_cooldown_seconds=2.0)
     index = WorkflowGraphIndex.build(basic_graph)
     camera_id = uuid4()
     other_run = replace(identity, run_id=uuid4())
@@ -80,10 +76,81 @@ async def test_zero_cooldown_processes_every_frame(
     index = WorkflowGraphIndex.build(basic_graph)
     camera_id = uuid4()
 
-    await run(make_frame(camera_id=camera_id), index, identity, people_model)
-    await run(make_frame(camera_id=camera_id), index, identity, people_model)
+    await run(make_frame(camera_id=camera_id), index, identity, people_model, effects.frames)
+    await run(make_frame(camera_id=camera_id), index, identity, people_model, effects.frames)
 
     assert len(effects.actions) == 2
+
+
+async def test_line_crossing_is_observed_inside_realtime_cooldown(
+    effects,
+    basic_nodes,
+    build_graph,
+    make_frame,
+    make_detection,
+    identity,
+    people_model,
+):
+    nodes = {
+        **basic_nodes,
+        "line": {"kind": "line_crossing_filter", "line": [(0.5, 0), (0.5, 1)]},
+    }
+    index = WorkflowGraphIndex.build(
+        build_graph(
+            nodes,
+            [("cam", "det"), ("det", "line"), ("line", "alert")],
+        )
+    )
+    dependencies = replace(effects.frames, event_cooldown_seconds=2)
+    before = make_frame(
+        detections=(make_detection(tracker_id=7, bounding_box=(100, 100, 300, 400)),)
+    )
+    after = before.model_copy(
+        update={
+            "timestamp": before.timestamp + timedelta(milliseconds=100),
+            "detections": (make_detection(tracker_id=7, bounding_box=(900, 100, 1100, 400)),),
+        }
+    )
+
+    await run(before, index, identity, people_model, dependencies)
+    await run(after, index, identity, people_model, dependencies)
+
+    assert len(effects.actions) == 1
+    assert effects.actions[0][1].ts == after.timestamp
+    assert effects.realtime_types() == ["detections", "event", "detections"]
+
+
+async def test_failed_queue_write_does_not_consume_debounce(
+    effects,
+    basic_nodes,
+    build_graph,
+    make_frame,
+    identity,
+    people_model,
+):
+    nodes = {**basic_nodes, "debounce": {"kind": "debounce_filter", "seconds": 30}}
+    index = WorkflowGraphIndex.build(
+        build_graph(
+            nodes,
+            [("cam", "det"), ("det", "debounce"), ("debounce", "alert")],
+        )
+    )
+    attempts = []
+
+    async def persist(*args):
+        attempts.append(args)
+        if len(attempts) == 1:
+            raise RetryableFrameError("database unavailable")
+
+    dependencies = replace(effects.frames, run_action=persist)
+    frame = make_frame()
+
+    with pytest.raises(RetryableFrameError):
+        await run(frame, index, identity, people_model, dependencies)
+
+    await run(frame, index, identity, people_model, dependencies)
+
+    assert len(attempts) == 2
 
 
 class TestHandleDetectionFrame:
@@ -111,7 +178,7 @@ class TestHandleDetectionFrame:
         )
         camera.start_command = start.model_dump(mode="json")
 
-        return workflow, camera, start
+        return (workflow, camera, start)
 
     def matching_frame(self, make_frame, camera, start, **overrides):
         fields = {
@@ -130,9 +197,10 @@ class TestHandleDetectionFrame:
     ):
         _workflow, camera, start = self.seed(fake_session, basic_graph)
 
-        await handle_detection_frame(self.matching_frame(make_frame, camera, start))
+        await handle_detection_frame(self.matching_frame(make_frame, camera, start), effects.frames)
 
         identity, _event, action, _context = effects.actions[0]
+
         assert action.kind == "log_alert_action"
         assert identity == ExecutionIdentity(
             workflow_id=start.workflow_id,
@@ -145,7 +213,7 @@ class TestHandleDetectionFrame:
     async def test_frame_for_unknown_camera_stops_its_run(self, effects, make_frame):
         frame = make_frame()
 
-        await handle_detection_frame(frame)
+        await handle_detection_frame(frame, effects.frames)
 
         assert effects.commands == [
             StopStream(camera_id=frame.camera_id, revision=frame.revision, run_id=frame.run_id)
@@ -158,7 +226,7 @@ class TestHandleDetectionFrame:
         _workflow, camera, start = self.seed(fake_session, basic_graph)
         frame = self.matching_frame(make_frame, camera, start, workflow_id=uuid4())
 
-        await handle_detection_frame(frame)
+        await handle_detection_frame(frame, effects.frames)
 
         assert [type(command) for command in effects.commands] == [StopStream]
         assert effects.actions == []
@@ -169,7 +237,7 @@ class TestHandleDetectionFrame:
         _workflow, camera, start = self.seed(fake_session, basic_graph)
         camera.start_command = None
 
-        await handle_detection_frame(self.matching_frame(make_frame, camera, start))
+        await handle_detection_frame(self.matching_frame(make_frame, camera, start), effects.frames)
 
         assert [type(command) for command in effects.commands] == [StopStream]
 
@@ -179,7 +247,9 @@ class TestHandleDetectionFrame:
         _workflow, camera, start = self.seed(fake_session, basic_graph, revision=3)
         caplog.set_level("DEBUG", logger="api.application.frame_processing")
 
-        await handle_detection_frame(self.matching_frame(make_frame, camera, start, revision=2))
+        await handle_detection_frame(
+            self.matching_frame(make_frame, camera, start, revision=2), effects.frames
+        )
 
         assert effects.commands == []
         assert effects.realtime == []
@@ -190,7 +260,9 @@ class TestHandleDetectionFrame:
     ):
         _workflow, camera, start = self.seed(fake_session, basic_graph)
 
-        await handle_detection_frame(self.matching_frame(make_frame, camera, start, run_id=uuid4()))
+        await handle_detection_frame(
+            self.matching_frame(make_frame, camera, start, run_id=uuid4()), effects.frames
+        )
 
         assert effects.commands == []
         assert effects.actions == []
@@ -200,7 +272,7 @@ class TestHandleDetectionFrame:
     ):
         _workflow, camera, start = self.seed(fake_session, basic_graph, enabled=False)
 
-        await handle_detection_frame(self.matching_frame(make_frame, camera, start))
+        await handle_detection_frame(self.matching_frame(make_frame, camera, start), effects.frames)
 
         assert effects.commands == []
         assert effects.actions == []
@@ -212,7 +284,7 @@ class TestHandleDetectionFrame:
         camera.start_command["config"]["model_id"] = "ghost"
 
         await handle_detection_frame(
-            self.matching_frame(make_frame, camera, start, model_id="ghost")
+            self.matching_frame(make_frame, camera, start, model_id="ghost"), effects.frames
         )
 
         assert effects.actions == []
@@ -224,7 +296,7 @@ class TestHandleDetectionFrame:
         _workflow, camera, start = self.seed(fake_session, basic_graph)
         camera.start_command = {"type": "start_stream"}
 
-        await handle_detection_frame(self.matching_frame(make_frame, camera, start))
+        await handle_detection_frame(self.matching_frame(make_frame, camera, start), effects.frames)
 
         assert effects.commands == []
         assert effects.actions == []
@@ -235,17 +307,18 @@ class TestHandleDetectionFrame:
         workflow, camera, start = self.seed(fake_session, basic_graph)
         workflow.graph = {"nodes": "broken"}
 
-        await handle_detection_frame(self.matching_frame(make_frame, camera, start))
+        await handle_detection_frame(self.matching_frame(make_frame, camera, start), effects.frames)
 
         assert effects.actions == []
         assert "invalid persisted runtime state" in caplog.text
 
-    async def test_lookup_failure_drops_the_frame_without_stopping(
+    async def test_lookup_failure_is_retryable_without_stopping(
         self, effects, fake_session, make_frame, caplog
     ):
         fake_session.fail_on_execute = RuntimeError("database away")
 
-        await handle_detection_frame(make_frame())
+        with pytest.raises(RetryableFrameError):
+            await handle_detection_frame(make_frame(), effects.frames)
 
         assert effects.commands == []
         assert "camera/workflow lookup failed" in caplog.text

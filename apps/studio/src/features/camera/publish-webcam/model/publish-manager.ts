@@ -1,6 +1,6 @@
 import { toast } from "sonner";
-import { getMediamtxMediaAuthorization } from "@/shared/config";
 import { isTerminalConnectionState, publishWhip } from "@/shared/lib/webrtc";
+import { getCameraMediaAuthorization } from "@/entities/camera";
 import { cameraWhipUrl } from "../api/mediamtx";
 
 export type PublishStatus = "connecting" | "live" | "reconnecting";
@@ -129,9 +129,10 @@ async function attemptPublish(cameraId: string, session: PublishSession): Promis
 
     emit();
 
+    const authorization = await getCameraMediaAuthorization(cameraId, "publish", controller.signal);
     const { close, peerConnection } = await publishWhip(
       cameraWhipUrl(cameraId),
-      getMediamtxMediaAuthorization(),
+      authorization,
       stream,
       controller.signal
     );
@@ -166,7 +167,7 @@ async function attemptPublish(cameraId: string, session: PublishSession): Promis
     session.closePeer?.();
     session.closePeer = null;
 
-    if (!sessions.has(cameraId)) {
+    if (sessions.get(cameraId) !== session || session.generation !== generation) {
       releaseSessionStream(session);
 
       return;

@@ -16,6 +16,5 @@ class Credential(Base, UUIDMixin, TimestampMixin):
 
     name: Mapped[str] = mapped_column(unique=True)
     type: Mapped[str] = mapped_column()
-    # Non-secret hint for list views (host or service name), derived on write.
     summary: Mapped[str]
     encrypted_payload: Mapped[str]

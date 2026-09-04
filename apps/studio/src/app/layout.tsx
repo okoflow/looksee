@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import localFont from "next/font/local";
 import type { PropsWithChildren } from "react";
 import { AppProviders } from "@/_app/providers";
 import "@/_app/styles/globals.css";
@@ -7,8 +7,10 @@ import { EnvironmentScript } from "@/shared/config/index.server";
 import { cn } from "@/shared/lib/cn";
 import { Toaster } from "@/shared/ui/sonner";
 
-const geist = Geist({
-  subsets: ["latin"],
+const geist = localFont({
+  src: "../../public/fonts/geist-latin.woff2",
+  weight: "100 900",
+  display: "swap",
   variable: "--font-geist",
 });
 

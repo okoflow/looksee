@@ -11,8 +11,6 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from collections.abc import Awaitable, Callable
-
     from api.domain.workflow.base import WorkflowModel
 
 
@@ -28,7 +26,7 @@ class NodeExtension:
     feature: str
     draft: type[WorkflowModel]
     runnable: type[WorkflowModel]
-    deliver: Callable[..., Awaitable[None]] | None = None
+    deliver: str | None = None
 
 
 def _load_node_extensions() -> tuple[NodeExtension, ...]:

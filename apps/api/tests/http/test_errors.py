@@ -3,7 +3,6 @@
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from starlette.exceptions import StarletteDeprecationWarning
 
 from api.application.errors import (
     InvalidCredentialsError,
@@ -101,15 +100,6 @@ def test_graph_error_without_node_reports_null_node(client):
     assert response.json()["code"] == "no_camera_source"
 
 
-@pytest.mark.xfail(
-    strict=True,
-    raises=StarletteDeprecationWarning,
-    reason=(
-        "apps/api/src/api/entrypoints/http/errors.py:44 reads status.HTTP_422_UNPROCESSABLE_ENTITY, "
-        "deprecated by Starlette 1.x in favour of HTTP_422_UNPROCESSABLE_CONTENT; every graph "
-        "error response emits a StarletteDeprecationWarning (a UserWarning, visible by default)"
-    ),
-)
 def test_graph_error_responses_emit_no_deprecation_warning(client):
     response = client.get("/cycle")
 

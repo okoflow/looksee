@@ -1,12 +1,18 @@
 """Session auth entrypoints: first-run owner setup, login, logout, me."""
 
-from fastapi import APIRouter, Response, status
+from fastapi import APIRouter, Depends, Response, status
 
 from api.adapters.persistence.models import User
 from api.adapters.security import SESSION_TTL, issue_session_token
 from api.application import auth
 from api.config import settings
-from api.entrypoints.http.dependencies import SESSION_COOKIE, CurrentUserDep, SessionDep
+from api.entrypoints.http.dependencies import (
+    SESSION_COOKIE,
+    AccountsDep,
+    CurrentUserDep,
+    PasswordsDep,
+    require_auth_capacity,
+)
 from api.entrypoints.http.schemas.auth import (
     AuthStatusRead,
     LoginRequest,
@@ -30,18 +36,25 @@ def _attach_session(response: Response, user: User) -> None:
 
 
 @router.get("/status")
-async def auth_status(session: SessionDep) -> AuthStatusRead:
-    return AuthStatusRead(requires_setup=await auth.requires_setup(session))
+async def auth_status(accounts: AccountsDep) -> AuthStatusRead:
+    return AuthStatusRead(requires_setup=await auth.requires_setup(accounts))
 
 
-@router.post("/setup", response_model=UserRead, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/setup",
+    response_model=UserRead,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_auth_capacity)],
+)
 async def setup_owner(
     payload: SetupRequest,
-    session: SessionDep,
+    accounts: AccountsDep,
+    passwords: PasswordsDep,
     response: Response,
 ) -> User:
     owner = await auth.create_owner(
-        session,
+        accounts,
+        passwords,
         email=payload.email,
         name=payload.name,
         password=payload.password,
@@ -51,9 +64,13 @@ async def setup_owner(
     return owner
 
 
-@router.post("/login", response_model=UserRead)
-async def login(payload: LoginRequest, session: SessionDep, response: Response) -> User:
-    user = await auth.authenticate(session, email=payload.email, password=payload.password)
+@router.post("/login", response_model=UserRead, dependencies=[Depends(require_auth_capacity)])
+async def login(
+    payload: LoginRequest, accounts: AccountsDep, passwords: PasswordsDep, response: Response
+) -> User:
+    user = await auth.authenticate(
+        accounts, passwords, email=payload.email, password=payload.password
+    )
     _attach_session(response, user)
 
     return user

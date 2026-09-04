@@ -35,10 +35,13 @@ their default localhost ports.
 
 The server validates public runtime values on each request and injects them into the page,
 so a deployed image can be repointed without rebuilding: `RUNTIME_API_URL`,
-`RUNTIME_WS_URL`, `RUNTIME_MEDIAMTX_WEBRTC_URL`, `RUNTIME_MEDIAMTX_MEDIA_USER`,
-`RUNTIME_MEDIAMTX_MEDIA_PASSWORD`, `RUNTIME_DOCS_URL`, `RUNTIME_GITHUB_URL`. These values,
-including the MediaMTX credentials, are visible to the browser — treat them as access
-details for a trusted deployment, not as private backend secrets.
+`RUNTIME_WS_URL`, `RUNTIME_MEDIAMTX_WEBRTC_URL`, `RUNTIME_DOCS_URL`,
+`RUNTIME_GITHUB_URL`. These values are public. Service credentials are never included:
+playback and webcam publishing request short-lived, camera-scoped grants from the API.
 
 `SERVER_API_URL` is server-only: the auth guard resolves sessions against it, so inside
 compose it points at the internal `http://api:8000` service address.
+
+Geist is bundled locally under its SIL Open Font License, so production builds do
+not need to contact Google Fonts. Validate changes with lint, architecture lint,
+typecheck, and production build; the repository does not include a Studio test runner.

@@ -115,3 +115,43 @@ def test_non_positive_cooldown_is_always_ready(state, seconds):
     state.touch_event_cooldown(camera, run, "PERSON_DETECTED")
 
     assert state.event_cooldown_ready(camera, run, "PERSON_DETECTED", seconds) is True
+
+
+def test_worker_retry_remains_bounded_after_months_offline(state):
+    camera = uuid4()
+
+    for _ in range(2000):
+        state.note_worker_retry(camera, 1, T0, base_seconds=30, cap_seconds=300)
+
+    assert not state.worker_retry_ready(camera, 1, T0 + timedelta(seconds=299))
+    assert state.worker_retry_ready(camera, 1, T0 + timedelta(seconds=300))
+
+
+def test_out_of_order_exit_does_not_erase_dwell(state, track_key):
+    state.dwell_seconds(*track_key, 7, True, T0)
+    state.dwell_seconds(*track_key, 7, True, T0 + timedelta(seconds=20))
+    state.dwell_seconds(*track_key, 7, False, T0 + timedelta(seconds=10))
+
+    assert state.dwell_seconds(*track_key, 7, True, T0 + timedelta(seconds=30)) == 30
+
+
+def test_failed_transaction_restores_track_and_debounce_state(state, track_key):
+    state.swap_track_point(*track_key, 7, (0.1, 0.1), T0)
+
+    with pytest.raises(RuntimeError), state.transaction():
+        state.swap_track_point(*track_key, 7, (0.9, 0.9), T0 + timedelta(seconds=1))
+        assert state.debounce_allows(*track_key, 30)
+        raise RuntimeError("queue unavailable")
+
+    assert state.swap_track_point(*track_key, 7, (0.9, 0.9), T0 + timedelta(seconds=1)) == (
+        0.1,
+        0.1,
+    )
+    assert state.debounce_allows(*track_key, 30)
+
+
+def test_successful_transaction_keeps_state(state, track_key):
+    with state.transaction():
+        assert state.debounce_allows(*track_key, 30)
+
+    assert not state.debounce_allows(*track_key, 30)

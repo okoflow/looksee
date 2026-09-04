@@ -10,12 +10,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, cast
 from uuid import UUID
 
+from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from api.adapters.persistence.credentials import encrypt_payload
 from api.adapters.persistence.models import Credential
-from api.application.errors import ResourceConflictError, ResourceNotFoundError
+from api.application.errors import InvalidPayloadError, ResourceConflictError, ResourceNotFoundError
 from api.domain.credentials import (
     CREDENTIAL_PAYLOADS,
     CredentialType,
@@ -36,7 +37,10 @@ _NAME_CONSTRAINT = "uq_credentials_name"
 def validate_payload(
     credential_type: CredentialType, payload: dict[str, object]
 ) -> CredentialPayload:
-    return CREDENTIAL_PAYLOADS[credential_type].model_validate(payload)
+    try:
+        return CREDENTIAL_PAYLOADS[credential_type].model_validate(payload)
+    except ValidationError:
+        raise InvalidPayloadError("invalid credential payload") from None
 
 
 async def list_credentials(session: AsyncSession) -> list[Credential]:

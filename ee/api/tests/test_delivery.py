@@ -6,6 +6,7 @@ from types import SimpleNamespace
 import httpx
 import pytest
 
+from api.application.errors import DeliveryError
 from api.domain.credentials import SlackWebhookPayload
 from ee.adapters import delivery
 from ee.workflow.actions import SlackActionData
@@ -46,12 +47,11 @@ async def transport(monkeypatch):
     await client.aclose()
 
 
-async def test_missing_credential_skips_delivery(
-    transport, credential, identity, make_event, caplog
-):
-    await delivery.run_slack(
-        identity, make_event(), SlackActionData(credential_id=CREDENTIAL_ID), {}
-    )
+async def test_missing_credential_is_reported(transport, credential, identity, make_event, caplog):
+    with pytest.raises(DeliveryError):
+        await delivery.run_slack(
+            identity, make_event(), SlackActionData(credential_id=CREDENTIAL_ID), {}
+        )
 
     assert credential["lookups"] == [(CREDENTIAL_ID, SlackWebhookPayload)]
     assert transport.requests == []
@@ -68,6 +68,7 @@ async def test_message_is_posted_to_the_webhook(transport, credential, identity,
     await delivery.run_slack(identity, event, config, {"snapshot_url": "/snapshots/a.jpg"})
 
     [request] = transport.requests
+
     assert request.method == "POST"
     assert str(request.url) == WEBHOOK
     assert json.loads(request.content) == {
@@ -75,32 +76,27 @@ async def test_message_is_posted_to_the_webhook(transport, credential, identity,
     }
 
 
-async def test_failure_is_logged_not_raised(transport, credential, identity, make_event, caplog):
+async def test_failure_is_reported_safely(transport, credential, identity, make_event, caplog):
     credential["payload"] = SlackWebhookPayload(webhook_url=WEBHOOK)
     transport.responder["status"] = 403
 
-    await delivery.run_slack(
-        identity, make_event(), SlackActionData(credential_id=CREDENTIAL_ID), {}
-    )
+    with pytest.raises(DeliveryError):
+        await delivery.run_slack(
+            identity, make_event(), SlackActionData(credential_id=CREDENTIAL_ID), {}
+        )
 
     assert f"slack delivery failed workflow={identity.workflow_id}" in caplog.text
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason=(
-        "ee/api/src/ee/adapters/delivery.py:42-43 logs the httpx failure with "
-        "logger.exception, whose message carries the webhook URL and thus its token"
-    ),
-)
 async def test_failure_log_never_leaks_the_webhook(
     transport, credential, identity, make_event, caplog
 ):
     credential["payload"] = SlackWebhookPayload(webhook_url=WEBHOOK)
     transport.responder["status"] = 403
 
-    await delivery.run_slack(
-        identity, make_event(), SlackActionData(credential_id=CREDENTIAL_ID), {}
-    )
+    with pytest.raises(DeliveryError):
+        await delivery.run_slack(
+            identity, make_event(), SlackActionData(credential_id=CREDENTIAL_ID), {}
+        )
 
     assert "secret-token" not in caplog.text

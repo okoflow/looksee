@@ -13,13 +13,17 @@ src/api/
 ├── adapters/     PostgreSQL, Valkey, MediaMTX, filesystem, delivery, and runtime state
 ├── entrypoints/  HTTP and WebSocket routers plus Redis subscribers
 ├── config.py
+├── bootstrap.py  runtime adapter composition
 └── main.py
-alembic/          the fresh-install database migration
+alembic/          database migrations
 ```
 
-Dependencies point inward: entrypoints call application use cases, which use domain
-models and adapter ports. Keep HTTP routers thin and keep FastAPI, SQLAlchemy, and
-transport details out of the domain layer.
+The execution, frame processing, authentication, media authorization, validation,
+and delivery core depends on domain models and application-owned ports. Adapters
+implement those ports; `bootstrap.py` and HTTP dependencies compose them. Existing
+workflow CRUD and camera reconciliation still use SQLAlchemy sessions directly.
+Keep HTTP routers thin and infrastructure out of the domain and extracted core;
+architecture tests enforce these boundaries.
 
 ## Run locally
 
@@ -30,6 +34,6 @@ uv run --package looksee-api alembic -c apps/api/alembic.ini upgrade head
 uv run --package looksee-api fastapi dev apps/api/src/api/main.py
 ```
 
-The running service exposes OpenAPI at `http://localhost:8000/docs`. After an ORM change,
-keep the squashed `0001` migration in sync and verify with
+The running service exposes OpenAPI at `http://localhost:8000/docs`. Apply migrations
+before starting the API. Verify ORM changes with
 `uv run --package looksee-api alembic -c apps/api/alembic.ini check`.

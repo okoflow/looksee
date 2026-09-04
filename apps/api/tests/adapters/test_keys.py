@@ -1,5 +1,7 @@
 """Process secret resolution and HKDF-derived subsystem keys."""
 
+from concurrent.futures import ThreadPoolExecutor
+
 import pytest
 from cryptography.fernet import InvalidToken
 
@@ -72,7 +74,7 @@ def test_derived_keys_are_deterministic_per_secret(monkeypatch):
 
 
 def test_subsystem_keys_are_domain_separated():
-    assert keys._derive(b"looksee.sessions") != keys._derive(b"looksee.credentials")
+    assert keys.derive_key(b"looksee.sessions") != keys.derive_key(b"looksee.credentials")
 
 
 def test_credentials_fernet_round_trips_only_under_the_same_secret(monkeypatch):
@@ -86,3 +88,23 @@ def test_credentials_fernet_round_trips_only_under_the_same_secret(monkeypatch):
     monkeypatch.setattr(settings, "secret_key", "unit-test-secret-key")
     clear_caches()
     assert keys.credentials_fernet().decrypt(token) == b"payload"
+
+
+def test_concurrent_first_boot_uses_one_persisted_secret(secret_file):
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        secrets = list(executor.map(lambda _: keys._process_secret(), range(32)))
+
+    assert len(set(secrets)) == 1
+    assert secret_file.read_bytes() == secrets[0]
+
+
+def test_secret_file_cannot_follow_a_symlink(secret_file, tmp_path):
+    target = tmp_path / "unrelated"
+    target.write_bytes(b"must remain unchanged")
+    secret_file.parent.mkdir()
+    secret_file.symlink_to(target)
+
+    with pytest.raises(OSError):
+        keys._process_secret()
+
+    assert target.read_bytes() == b"must remain unchanged"

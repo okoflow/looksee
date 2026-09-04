@@ -1,7 +1,6 @@
 """Commercial workflow node types, registered into the api node unions."""
 
 from api.domain.workflow.extensions import NodeExtension
-from ee.adapters.delivery import run_slack
 from ee.features import ENTERPRISE_INTEGRATIONS, MEASUREMENT_FILTERS
 from ee.workflow.actions import RunnableSlackAction, SlackActionData
 from ee.workflow.filters import (
@@ -36,6 +35,6 @@ NODE_EXTENSIONS: tuple[NodeExtension, ...] = (
         feature=ENTERPRISE_INTEGRATIONS,
         draft=SlackActionData,
         runnable=RunnableSlackAction,
-        deliver=run_slack,
+        deliver="ee.adapters.delivery:run_slack",
     ),
 )

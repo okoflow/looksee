@@ -8,7 +8,7 @@ import { z } from "zod";
 import { Button } from "@/shared/ui/button";
 import { useUpdateWorkflow, validateGraph, type Workflow } from "@/entities/workflow";
 import { startWebcamPublish, stopWebcamPublish } from "@/features/camera/publish-webcam";
-import { focusNodeAtom, isDirtyAtom, serializeGraphAtom } from "@/features/workflow/graph-editing";
+import { acknowledgeSaveAtom, focusNodeAtom, serializeGraphAtom } from "@/features/workflow/graph-editing";
 
 const invalidGraphErrorSchema = z.object({ node_id: z.string().min(1) });
 
@@ -40,7 +40,7 @@ export function RunWorkflowButton({ workflow }: RunWorkflowButtonProps) {
   });
 
   const serializeGraph = useSetAtom(serializeGraphAtom);
-  const setIsDirty = useSetAtom(isDirtyAtom);
+  const acknowledgeSave = useSetAtom(acknowledgeSaveAtom);
   const focusNode = useSetAtom(focusNodeAtom);
 
   const handleRun = () => {
@@ -76,7 +76,7 @@ export function RunWorkflowButton({ workflow }: RunWorkflowButtonProps) {
       { graph, enabled: true },
       {
         onSuccess: (updatedWorkflow) => {
-          setIsDirty(false);
+          acknowledgeSave(graph);
 
           for (const camera of updatedWorkflow.cameras) {
             if (camera.source_type === "webrtc") {

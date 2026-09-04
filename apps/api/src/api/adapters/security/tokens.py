@@ -22,8 +22,13 @@ def issue_session_token(user_id: UUID) -> str:
 def decode_session_token(token: str) -> UUID | None:
     """Return the session's user id, or None for any invalid or expired token."""
     try:
-        claims = jwt.decode(token, session_signing_key(), algorithms=[_ALGORITHM])
+        claims = jwt.decode(
+            token,
+            session_signing_key(),
+            algorithms=[_ALGORITHM],
+            options={"require": ["sub", "iat", "exp"]},
+        )
 
         return UUID(claims["sub"])
-    except (jwt.InvalidTokenError, KeyError, ValueError):
+    except (jwt.InvalidTokenError, KeyError, ValueError, TypeError):
         return None

@@ -6,29 +6,8 @@ srt: no
 
 rtspTransports: [tcp]
 
-authMethod: internal
-authInternalUsers:
-  # The password comes from MTX_AUTHINTERNALUSERS_0_PASS, which compose fills
-  # from the required MTX_MEDIA_PASSWORD.
-  - user: media
-    permissions:
-      - action: read
-      - action: publish
-  - user: any
-    ips:
-      - 127.0.0.0/8
-      - ::1
-      - 10.0.0.0/8
-      - 172.16.0.0/12
-      - 192.168.0.0/16
-    permissions:
-      - action: api
-  # runOnDemand ffmpeg republishes file sources from inside this container.
-  - user: any
-    ips:
-      - 127.0.0.0/8
-      - ::1
-    permissions:
-      - action: publish
+authMethod: http
+authHTTPAddress: http://api:8000/internal/media/auth
+authHTTPExclude: []
 
 paths: {}

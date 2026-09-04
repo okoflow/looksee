@@ -76,9 +76,8 @@ services:
       - media-cache:/media:ro
     environment:
       MTX_LOGLEVEL: ${MTX_LOGLEVEL:-info}
+      MTX_AUTHHTTPADDRESS: ${MTX_AUTHHTTPADDRESS:-http://api:8000/internal/media/auth}
       MTX_WEBRTCADDITIONALHOSTS: ${WEBRTC_HOST_IP:?set WEBRTC_HOST_IP in .env (127.0.0.1 locally, the box LAN IP on-prem)}
-      MTX_AUTHINTERNALUSERS_0_USER: ${MTX_MEDIA_USER:-media}
-      MTX_AUTHINTERNALUSERS_0_PASS: ${MTX_MEDIA_PASSWORD:?set MTX_MEDIA_PASSWORD in .env}
     deploy:
       resources:
         limits:
@@ -122,6 +121,8 @@ services:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-looksee}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-looksee}
       REDIS_URL: redis://redis:6379/0
       MEDIAMTX_API_URL: http://mediamtx:9997
+      MTX_MEDIA_USER: ${MTX_MEDIA_USER:-media}
+      MTX_MEDIA_PASSWORD: ${MTX_MEDIA_PASSWORD:?set MTX_MEDIA_PASSWORD in .env}
       MODELS_DIR: /app/models
       SNAPSHOTS_DIR: /data/snapshots
       SECRET_KEY_FILE: /data/keys/secret.key
@@ -167,6 +168,8 @@ services:
     environment:
       REDIS_URL: redis://redis:6379/0
       MEDIAMTX_RTSP_URL: rtsp://mediamtx:8554
+      MTX_MEDIA_USER: ${MTX_MEDIA_USER:-media}
+      MTX_MEDIA_PASSWORD: ${MTX_MEDIA_PASSWORD:?set MTX_MEDIA_PASSWORD in .env}
       MODELS_DIR: /app/models
     healthcheck:
       <<: *healthcheck-defaults
@@ -199,8 +202,6 @@ services:
       RUNTIME_API_URL: ${RUNTIME_API_URL:-http://${WEBRTC_HOST_IP}:${API_PORT:-8000}}
       RUNTIME_WS_URL: ${RUNTIME_WS_URL:-ws://${WEBRTC_HOST_IP}:${API_PORT:-8000}}
       RUNTIME_MEDIAMTX_WEBRTC_URL: ${RUNTIME_MEDIAMTX_WEBRTC_URL:-http://${WEBRTC_HOST_IP}:${MTX_WEBRTC_PORT:-8889}}
-      RUNTIME_MEDIAMTX_MEDIA_USER: ${MTX_MEDIA_USER:-media}
-      RUNTIME_MEDIAMTX_MEDIA_PASSWORD: ${MTX_MEDIA_PASSWORD:?set MTX_MEDIA_PASSWORD in .env}
       RUNTIME_DOCS_URL: ${RUNTIME_DOCS_URL:-http://${WEBRTC_HOST_IP}:${DOCS_PORT:-3002}/docs}
       RUNTIME_GITHUB_URL: ${RUNTIME_GITHUB_URL:-https://github.com/okoflow/looksee}
       SERVER_API_URL: http://api:8000

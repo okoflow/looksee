@@ -4,9 +4,13 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Awaitable, Callable, Iterable
-from dataclasses import dataclass, replace
+from dataclasses import replace
 from typing import TYPE_CHECKING, Any, assert_never
+from uuid import UUID
 
+from pydantic.dataclasses import dataclass
+
+from api.application.errors import RetryableFrameError
 from api.domain.workflow import (
     ActionNodeData,
     CameraSourceData,
@@ -16,7 +20,6 @@ from api.domain.workflow import (
 )
 
 if TYPE_CHECKING:
-    from uuid import UUID
     from zoneinfo import ZoneInfo
 
     from api.domain.events import DetectionEvent
@@ -31,7 +34,6 @@ class ExecutionIdentity:
     workflow_id: UUID
     run_id: UUID
     camera_name: str
-    # Set per action call so handlers can key per-node state (e.g. alert cooldowns).
     node_id: str = ""
 
 
@@ -115,6 +117,8 @@ class _EventExecutor:
                 data,
                 self._context,
             )
+        except RetryableFrameError:
+            raise
         except Exception:
             logger.exception(
                 "action failed node=%s workflow=%s",

@@ -4,7 +4,6 @@ import { getApiUrl } from "@/shared/config";
 
 const VALUE_ERROR_PREFIX = /^Value error, /;
 
-// FastAPI errors carry either a plain detail string or a validation issue list.
 const apiErrorSchema = z.object({
   detail: z
     .union([z.string(), z.array(z.object({ loc: z.array(z.union([z.string(), z.number()])), msg: z.string() }))])
@@ -44,7 +43,6 @@ function applyErrorDetail(state: BeforeErrorState): Error {
 const baseOptions = {
   timeout: 10_000,
   retry: 0,
-  // The session lives in an httpOnly cookie on the API origin.
   credentials: "include" as const,
   hooks: {
     beforeError: [applyErrorDetail],

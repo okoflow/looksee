@@ -2,8 +2,8 @@
 
 Node payloads arrive already validated by the runnable-graph check. Secrets
 are resolved from the credential referenced by the node at delivery time, so a
-credential edit applies immediately; a missing or mistyped credential logs a
-warning and skips the delivery.
+credential edit applies immediately. Adapters report sanitized delivery errors
+so the worker can distinguish permanent failures from recoverable ones.
 """
 
 from __future__ import annotations
@@ -19,7 +19,9 @@ import httpx
 
 from api.adapters.actions.formatting import event_payload, format_template
 from api.adapters.http.client import client
+from api.adapters.http.delivery_errors import http_delivery_error
 from api.adapters.persistence.credentials import read_credential_payload
+from api.application.errors import DeliveryError
 from api.domain.credentials import (
     DiscordWebhookPayload,
     MqttPayload,
@@ -51,11 +53,18 @@ async def run_webhook(
 ) -> None:
     try:
         response = await client.request(
-            config.method, config.url, json=event_payload(event, context), timeout=5
+            config.method,
+            config.url,
+            json=event_payload(event, context),
+            headers={"Idempotency-Key": str(context["delivery_id"])}
+            if "delivery_id" in context
+            else {},
+            timeout=5,
         )
         response.raise_for_status()
-    except httpx.HTTPError:
-        logger.exception("webhook delivery failed url=%s", config.url)
+    except httpx.HTTPError as exc:
+        logger.warning("webhook delivery failed node=%s", identity.node_id)
+        raise http_delivery_error(exc) from None
 
 
 async def run_telegram(
@@ -67,7 +76,7 @@ async def run_telegram(
     credential = await read_credential_payload(config.credential_id, TelegramBotPayload)
     if credential is None:
         logger.warning("telegram credential unavailable node=%s; skipping", identity.node_id)
-        return
+        raise DeliveryError("telegram credential unavailable", retryable=False)
 
     message = format_template(config.message_template, event, context)
     # The URL embeds the bot token, so failures must not log it.
@@ -89,8 +98,9 @@ async def run_telegram(
                 timeout=10,
             )
         response.raise_for_status()
-    except httpx.HTTPError:
-        logger.exception("telegram delivery failed chat=%s", config.chat_id)
+    except httpx.HTTPError as exc:
+        logger.warning("telegram delivery failed chat=%s", config.chat_id)
+        raise http_delivery_error(exc) from None
 
 
 async def run_email(
@@ -102,7 +112,7 @@ async def run_email(
     credential = await read_credential_payload(config.credential_id, SmtpPayload)
     if credential is None:
         logger.warning("smtp credential unavailable node=%s; skipping", identity.node_id)
-        return
+        raise DeliveryError("smtp credential unavailable", retryable=False)
 
     message = EmailMessage()
     message["From"] = _email_sender(credential)
@@ -125,7 +135,8 @@ async def run_email(
             timeout=10,
         )
     except (aiosmtplib.errors.SMTPException, OSError):
-        logger.exception("email delivery failed to=%s", config.to)
+        logger.warning("email delivery failed to=%s", config.to)
+        raise DeliveryError("SMTP delivery failed") from None
 
 
 async def run_mqtt(
@@ -137,7 +148,7 @@ async def run_mqtt(
     credential = await read_credential_payload(config.credential_id, MqttPayload)
     if credential is None:
         logger.warning("mqtt credential unavailable node=%s; skipping", identity.node_id)
-        return
+        raise DeliveryError("mqtt credential unavailable", retryable=False)
 
     if config.payload_template:
         payload = format_template(config.payload_template, event, context)
@@ -154,7 +165,8 @@ async def run_mqtt(
         ) as mqtt_client:
             await mqtt_client.publish(config.topic, payload)
     except aiomqtt.MqttError:
-        logger.exception("mqtt publish failed topic=%s", config.topic)
+        logger.warning("mqtt publish failed topic=%s", config.topic)
+        raise DeliveryError("MQTT delivery failed") from None
 
 
 async def run_discord(
@@ -166,7 +178,7 @@ async def run_discord(
     credential = await read_credential_payload(config.credential_id, DiscordWebhookPayload)
     if credential is None:
         logger.warning("discord credential unavailable node=%s; skipping", identity.node_id)
-        return
+        raise DeliveryError("discord credential unavailable", retryable=False)
 
     message = format_template(config.message_template, event, context)
     if len(message) > DISCORD_CONTENT_LIMIT:
@@ -183,8 +195,9 @@ async def run_discord(
             str(credential.webhook_url), json={"content": message}, timeout=10
         )
         response.raise_for_status()
-    except httpx.HTTPError:
-        logger.exception("discord delivery failed workflow=%s", identity.workflow_id)
+    except httpx.HTTPError as exc:
+        logger.warning("discord delivery failed workflow=%s", identity.workflow_id)
+        raise http_delivery_error(exc) from None
 
 
 def _email_sender(credential: SmtpPayload) -> str:

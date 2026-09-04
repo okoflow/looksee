@@ -3,13 +3,12 @@
 from uuid import uuid4
 
 import pytest
-from pydantic import ValidationError
 from sqlalchemy.exc import IntegrityError
 
 from api.adapters.persistence.credentials import decrypt_payload
 from api.adapters.persistence.models import Credential
 from api.application import credentials
-from api.application.errors import ResourceConflictError, ResourceNotFoundError
+from api.application.errors import InvalidPayloadError, ResourceConflictError, ResourceNotFoundError
 from api.domain.errors import GraphErrorCode, WorkflowGraphError
 from api.domain.graph import WorkflowGraphIndex
 
@@ -65,7 +64,7 @@ async def test_encrypted_payload_decrypts_to_the_validated_document(fake_session
     ],
 )
 def test_invalid_payloads_are_rejected(credential_type, payload):
-    with pytest.raises(ValidationError):
+    with pytest.raises(InvalidPayloadError):
         credentials.validate_payload(credential_type, payload)
 
 
@@ -127,7 +126,7 @@ async def test_update_payload_revalidates_against_the_existing_type(fake_session
 
     assert updated.summary == "new.example.com:25"
     assert decrypt_payload(updated.encrypted_payload)["host"] == "new.example.com"
-    with pytest.raises(ValidationError):
+    with pytest.raises(InvalidPayloadError):
         await credentials.update_credential(
             fake_session, credential.id, name=None, payload={"bot_token": "wrong type"}
         )

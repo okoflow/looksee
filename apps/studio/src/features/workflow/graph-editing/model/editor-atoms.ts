@@ -202,6 +202,14 @@ export const serializeGraphAtom = atom(null, (get): WorkflowGraph => {
   return reactFlowToDomain(get(flowNodesAtom), get(flowEdgesAtom));
 });
 
+export const acknowledgeSaveAtom = atom(null, (get, set, saved: WorkflowGraph) => {
+  const current = reactFlowToDomain(get(flowNodesAtom), get(flowEdgesAtom));
+
+  if (JSON.stringify(current) === JSON.stringify(saved)) {
+    set(isDirtyAtom, false);
+  }
+});
+
 export const loadGraphAtom = atom(null, (get, set, graph: WorkflowGraph) => {
   const selectedIds = new Set(
     get(flowNodesAtom).flatMap((node) => {

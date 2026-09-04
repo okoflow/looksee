@@ -10,7 +10,7 @@ export type WhepSessionState =
 const NO_STREAM_RETRY_DELAY_MS = 3000;
 
 interface RunWhepSessionArgs {
-  authorization: string;
+  getAuthorization: () => Promise<string>;
   onStateChange: (state: WhepSessionState) => void;
   signal: AbortSignal;
   url: string;
@@ -18,7 +18,7 @@ interface RunWhepSessionArgs {
 }
 
 export async function runWhepSession({
-  authorization,
+  getAuthorization,
   onStateChange,
   signal,
   url,
@@ -32,14 +32,14 @@ export async function runWhepSession({
 
   while (!signal.aborted) {
     emit({ status: "connecting" });
+    const attempt = new AbortController();
 
     try {
-      // biome-ignore lint/performance/noAwaitInLoops: reconnect attempts are inherently sequential
-      const peerConnection = await playWhep(url, authorization, video, signal);
+      // biome-ignore lint/performance/noAwaitInLoops: reconnect attempts are sequential
+      const authorization = await getAuthorization();
+      const peerConnection = await playWhep(url, authorization, video, AbortSignal.any([signal, attempt.signal]));
 
-      watchPlayback(peerConnection, emit, signal);
-
-      return;
+      await watchPlayback(peerConnection, emit, signal);
     } catch (caught) {
       if (signal.aborted) {
         return;
@@ -53,11 +53,13 @@ export async function runWhepSession({
 
         return;
       }
-
-      emit({ status: "waiting" });
-
-      await abortableDelay(NO_STREAM_RETRY_DELAY_MS, signal);
+    } finally {
+      attempt.abort();
     }
+
+    emit({ status: "waiting" });
+
+    await abortableDelay(NO_STREAM_RETRY_DELAY_MS, signal);
   }
 }
 
@@ -66,41 +68,52 @@ function watchPlayback(
   emit: (state: WhepSessionState) => void,
   signal: AbortSignal
 ) {
-  const update = () => {
-    const state = peerConnection.connectionState;
-
-    if (state === "connected") {
-      emit({ status: "playing" });
-    } else if (isTerminalConnectionState(state)) {
-      emit({ status: "error", error: `Connection ${state}` });
-    }
-  };
-
-  peerConnection.addEventListener("connectionstatechange", update);
-
-  signal.addEventListener(
-    "abort",
-    () => {
+  return new Promise<void>((resolve) => {
+    const finish = () => {
+      clearTimeout(timer);
       peerConnection.removeEventListener("connectionstatechange", update);
-    },
-    { once: true }
-  );
+      signal.removeEventListener("abort", finish);
+      peerConnection.close();
 
-  update();
+      resolve();
+    };
+    const update = () => {
+      const state = peerConnection.connectionState;
+
+      if (state === "connected") {
+        clearTimeout(timer);
+        emit({ status: "playing" });
+      } else if (isTerminalConnectionState(state)) {
+        finish();
+      }
+    };
+    const timer = setTimeout(finish, 30_000);
+
+    peerConnection.addEventListener("connectionstatechange", update);
+    signal.addEventListener("abort", finish, { once: true });
+
+    if (signal.aborted) {
+      finish();
+    } else {
+      update();
+    }
+  });
 }
 
 function abortableDelay(delayMs: number, signal: AbortSignal): Promise<void> {
   return new Promise((resolve) => {
-    const timer = setTimeout(resolve, delayMs);
+    const finish = () => {
+      clearTimeout(timer);
+      signal.removeEventListener("abort", finish);
 
-    signal.addEventListener(
-      "abort",
-      () => {
-        clearTimeout(timer);
+      resolve();
+    };
+    const timer = setTimeout(finish, delayMs);
 
-        resolve();
-      },
-      { once: true }
-    );
+    signal.addEventListener("abort", finish, { once: true });
+
+    if (signal.aborted) {
+      finish();
+    }
   });
 }

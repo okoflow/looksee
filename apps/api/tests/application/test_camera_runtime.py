@@ -6,11 +6,11 @@ import pytest
 
 from api.adapters.persistence.models import Camera, Workflow
 from api.application import camera_runtime
+from api.application.camera_policy import matches_desired_run
 from api.application.camera_runtime import (
     CameraRuntimePlan,
     apply_camera_runtime_plan,
     inference_config,
-    matches_desired_run,
     parse_start_command,
     start_is_current,
     start_workflow_cameras,

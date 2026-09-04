@@ -8,6 +8,7 @@ import json
 import logging
 from uuid import UUID
 
+from cryptography.fernet import InvalidToken
 from pydantic import ValidationError
 
 from api.adapters.persistence.db import session_factory
@@ -62,6 +63,7 @@ async def read_credential_payload[PayloadT: CredentialPayload](
 
     try:
         return payload_type.model_validate(decrypt_payload(credential.encrypted_payload))
-    except (ValidationError, ValueError):
-        logger.exception("credential %s payload failed to decrypt or validate", credential_id)
+    except (InvalidToken, ValidationError, ValueError):
+        # ValidationError includes the decrypted input. Never log the exception.
+        logger.warning("credential %s payload failed to decrypt or validate", credential_id)
         return None

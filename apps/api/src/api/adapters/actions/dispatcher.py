@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
+from importlib import import_module
 from typing import TYPE_CHECKING, Any, get_args
 
 from api.adapters.actions.alerts import run_log_alert
@@ -36,8 +37,15 @@ type ActionHandler = Callable[
     Awaitable[None],
 ]
 
+
+def _load_handler(path: str) -> ActionHandler:
+    module_name, attribute = path.split(":", 1)
+
+    return getattr(import_module(module_name), attribute)
+
+
 _EXTENSION_HANDLERS: dict[type, ActionHandler] = {
-    extension.draft: extension.deliver
+    extension.draft: _load_handler(extension.deliver)
     for extension in NODE_EXTENSIONS
     if extension.deliver is not None
 }

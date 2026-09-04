@@ -137,9 +137,11 @@ async def _reconcile_camera_paths(cameras: Sequence[Camera]) -> None:
 
     plan = plan_camera_paths([camera.id for camera in cameras], existing_names)
 
-    if plan.missing_ids:
-        await apply_camera_runtime_plan(CameraRuntimePlan(upsert_path_ids=set(plan.missing_ids)))
-        logger.info("reconciled %d missing mediamtx paths", len(plan.missing_ids))
+    # Existing paths may still carry an old source after a failed post-commit
+    # update. The media adapter compares configuration before replacing a path.
+    await apply_camera_runtime_plan(
+        CameraRuntimePlan(upsert_path_ids={camera.id for camera in cameras})
+    )
 
     for camera_id in plan.orphan_ids:
         await _delete_orphan_camera_path(camera_id)
