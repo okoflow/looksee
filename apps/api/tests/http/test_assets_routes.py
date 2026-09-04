@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
+from botocore.exceptions import ClientError
 
 from api.adapters.storage import s3
 from api.adapters.storage.s3 import StoredAsset
@@ -67,6 +68,37 @@ def test_unconfigured_store_refuses_uploads(client, owner, monkeypatch):
     response = client.post("/assets", files={"file": ("clip.mp4", b"abc", "video/mp4")})
 
     assert response.status_code == 503
+
+
+@pytest.mark.parametrize(
+    ("method", "path"),
+    [
+        ("GET", "/assets"),
+        ("POST", "/assets"),
+        ("GET", "/assets/clip.mp4/content"),
+        ("DELETE", "/assets/clip.mp4"),
+    ],
+)
+def test_storage_failure_returns_readable_cors_response(client, owner, monkeypatch, method, path):
+    def unavailable():
+        raise ClientError(
+            {"Error": {"Code": "InvalidAccessKeyId", "Message": "private-access-key"}},
+            "ListObjectsV2",
+        )
+
+    monkeypatch.setattr(s3, "asset_store_configured", lambda: True)
+    monkeypatch.setattr(s3, "_client", unavailable)
+    files = {"file": ("clip.mp4", b"video", "video/mp4")} if method == "POST" else None
+
+    response = client.request(
+        method, path, files=files, headers={"Origin": "http://localhost:3000"}
+    )
+
+    assert response.status_code == 503
+    assert response.headers["access-control-allow-origin"] == "http://localhost:3000"
+    assert response.json() == {
+        "detail": "Video storage is unavailable. Check its connection and S3 credentials."
+    }
 
 
 def test_upload_then_list(client, store):

@@ -130,3 +130,4 @@ jobs:
         env:
           POSTGRES_PASSWORD: ci-config-check
           MTX_MEDIA_PASSWORD: ci-config-check
+          STORAGE_PASSWORD: ci-config-check

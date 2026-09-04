@@ -22,6 +22,44 @@ x-env-file: &env-file
     required: false
 
 services:
+  storage:
+    <<: *service-defaults
+    image: rustfs/rustfs:1.0.0-rc.5
+    command: ["/data"]
+    environment:
+      RUSTFS_ACCESS_KEY: looksee
+      RUSTFS_SECRET_KEY: ${STORAGE_PASSWORD:?set STORAGE_PASSWORD in .env}
+      RUSTFS_CONSOLE_ENABLE: "false"
+    ports:
+      - "127.0.0.1:${STORAGE_PORT:-9000}:9000"
+    volumes:
+      - storage_data:/data
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:9000/health"]
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 1g
+
+  storage-init:
+    image: ${REGISTRY:-looksee}/api:${TAG:-latest}
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: "no"
+    logging: *default-logging
+    command: ["python", "-m", "api.entrypoints.storage_init"]
+    environment:
+      S3_ENDPOINT_URL: http://storage:9000
+      S3_ACCESS_KEY_ID: looksee
+      S3_SECRET_ACCESS_KEY: ${STORAGE_PASSWORD:?set STORAGE_PASSWORD in .env}
+      S3_BUCKET: ${S3_BUCKET:-looksee}
+    depends_on:
+      storage:
+        condition: service_healthy
+
   redis:
     <<: *service-defaults
     image: valkey/valkey:9-alpine
@@ -127,6 +165,10 @@ services:
       SNAPSHOTS_DIR: /data/snapshots
       SECRET_KEY_FILE: /data/keys/secret.key
       MEDIA_CACHE_DIR: /var/lib/looksee/media-cache
+      S3_ENDPOINT_URL: ${S3_ENDPOINT_URL:-http://storage:9000}
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-looksee}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-${STORAGE_PASSWORD:?set STORAGE_PASSWORD in .env}}
+      S3_BUCKET: ${S3_BUCKET:-looksee}
     volumes:
       - api_snapshots:/data/snapshots
       - api_keys:/data/keys
@@ -151,6 +193,8 @@ services:
       api-migrate:
         condition: service_completed_successfully
       media-cache-init:
+        condition: service_completed_successfully
+      storage-init:
         condition: service_completed_successfully
     deploy:
       resources:
@@ -202,7 +246,7 @@ services:
       RUNTIME_API_URL: ${RUNTIME_API_URL:-http://${WEBRTC_HOST_IP}:${API_PORT:-8000}}
       RUNTIME_WS_URL: ${RUNTIME_WS_URL:-ws://${WEBRTC_HOST_IP}:${API_PORT:-8000}}
       RUNTIME_MEDIAMTX_WEBRTC_URL: ${RUNTIME_MEDIAMTX_WEBRTC_URL:-http://${WEBRTC_HOST_IP}:${MTX_WEBRTC_PORT:-8889}}
-      RUNTIME_DOCS_URL: ${RUNTIME_DOCS_URL:-http://${WEBRTC_HOST_IP}:${DOCS_PORT:-3002}/docs}
+      RUNTIME_DOCS_URL: https://github.com/okoflow/looksee-docs
       RUNTIME_GITHUB_URL: ${RUNTIME_GITHUB_URL:-https://github.com/okoflow/looksee}
       SERVER_API_URL: http://api:8000
     ports:
@@ -226,6 +270,7 @@ services:
 
 
 volumes:
+  storage_data:
   redis_data:
   postgres_data:
   api_snapshots:

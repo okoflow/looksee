@@ -28,7 +28,7 @@ declare global {
 
 export const runtimeEnvironmentDefaults = publicRuntimeEnvironmentSchema.parse({
   apiUrl: "http://localhost:8000",
-  docsUrl: "http://localhost:3002/docs",
+  docsUrl: "https://github.com/okoflow/looksee-docs",
   githubUrl: "https://github.com/okoflow/looksee",
   webSocketUrl: "ws://localhost:8000",
   mediamtxWebRTCUrl: "http://localhost:8889",

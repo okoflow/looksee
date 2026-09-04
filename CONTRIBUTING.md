@@ -47,16 +47,17 @@ uv sync --all-packages --extra cpu
 pnpm -C apps/studio install --frozen-lockfile
 ```
 
-Run the infrastructure in containers and the services natively. Uncomment the
-"native development" block at the end of `.env` so the services find
-`localhost` instead of the compose service names. For MediaMTX in Docker Desktop
-and a native API, set `MTX_AUTHHTTPADDRESS=http://host.docker.internal:8000/internal/media/auth`;
-the default callback address is for the full container stack. The API must be reachable
-before media playback starts. Set private `POSTGRES_PASSWORD` and `MTX_MEDIA_PASSWORD`
-values in `.env` before starting the containers.
+Run the infrastructure in containers and the services natively. Set private
+`POSTGRES_PASSWORD`, `MTX_MEDIA_PASSWORD`, and `STORAGE_PASSWORD` values in `.env`.
+For native services, set `DATABASE_URL` to the local PostgreSQL address and
+`S3_ENDPOINT_URL=http://localhost:9000`, `S3_ACCESS_KEY_ID=looksee`, and
+`S3_SECRET_ACCESS_KEY` to the storage password. `compose.native.yaml` connects
+MediaMTX to the host API and shares the host playback cache. The API must be
+reachable before media playback starts.
 
 ```bash
-docker compose up -d postgres redis mediamtx
+mkdir -p data/media-cache
+docker compose -f compose.yaml -f compose.native.yaml up -d --build postgres redis mediamtx storage-init
 
 uv run --package looksee-api alembic -c apps/api/alembic.ini upgrade head
 uv run --package looksee-api fastapi dev apps/api/src/api/main.py

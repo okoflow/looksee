@@ -25,3 +25,8 @@ class DeliveryError(Exception):
 
 class RetryableFrameError(Exception):
     pass
+
+
+class AssetStoreUnavailableError(RuntimeError):
+    def __init__(self) -> None:
+        super().__init__("Video storage is unavailable. Check its connection and S3 credentials.")

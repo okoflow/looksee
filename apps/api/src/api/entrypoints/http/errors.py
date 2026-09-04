@@ -5,6 +5,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from api.application.errors import (
+    AssetStoreUnavailableError,
     InvalidCredentialsError,
     InvalidPayloadError,
     ResourceConflictError,
@@ -14,12 +15,20 @@ from api.domain.errors import GraphErrorCode, WorkflowGraphError
 
 
 def register_exception_handlers(app: FastAPI) -> None:
+    app.add_exception_handler(AssetStoreUnavailableError, _service_unavailable)
     app.add_exception_handler(ResourceNotFoundError, _not_found)
     app.add_exception_handler(ResourceConflictError, _conflict)
     app.add_exception_handler(InvalidCredentialsError, _unauthorized)
     app.add_exception_handler(WorkflowGraphError, _invalid_graph)
     app.add_exception_handler(InvalidPayloadError, _invalid_payload)
     app.add_exception_handler(RequestValidationError, _invalid_request)
+
+
+async def _service_unavailable(_request: Request, exc: Exception) -> JSONResponse:
+    return JSONResponse(
+        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+        content={"detail": str(exc)},
+    )
 
 
 async def _invalid_request(_request: Request, exc: RequestValidationError) -> JSONResponse:

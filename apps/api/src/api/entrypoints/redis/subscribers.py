@@ -18,29 +18,49 @@ from shared import Channel, DetectionFrame, WorkerEvent
 logger = logging.getLogger(__name__)
 
 _CONSUMER_NAME = f"{socket.gethostname()}-{os.getpid()}"
+_RECOVERY_IDLE_MS = 60_000
 
 
 def create_router(dependencies: FrameProcessingDependencies) -> RedisRouter:
     router = RedisRouter()
+    frame_lock = asyncio.Lock()
 
     @router.subscriber(
         stream=StreamSub(
             Channel.DETECTION_FRAMES,
             group=settings.consumer_group,
             consumer=_CONSUMER_NAME,
-            min_idle_time=60_000,
+            max_records=1,
         ),
         ack_policy=AckPolicy.NACK_ON_ERROR,
         max_workers=1,
     )
     async def consume_detection_frame(frame: DetectionFrame) -> None:
-        while True:
-            try:
-                await handle_detection_frame(frame, dependencies)
-                return
-            except RetryableFrameError:
-                logger.warning("retrying frame camera=%s", frame.camera_id)
-                await asyncio.sleep(2)
+        await process_detection_frame(frame)
+
+    @router.subscriber(
+        stream=StreamSub(
+            Channel.DETECTION_FRAMES,
+            group=settings.consumer_group,
+            consumer=f"{_CONSUMER_NAME}-recovery",
+            min_idle_time=_RECOVERY_IDLE_MS,
+            max_records=1,
+        ),
+        ack_policy=AckPolicy.NACK_ON_ERROR,
+        max_workers=1,
+    )
+    async def recover_detection_frame(frame: DetectionFrame) -> None:
+        await process_detection_frame(frame)
+
+    async def process_detection_frame(frame: DetectionFrame) -> None:
+        async with frame_lock:
+            while True:
+                try:
+                    await handle_detection_frame(frame, dependencies)
+                    return
+                except RetryableFrameError:
+                    logger.warning("retrying frame camera=%s", frame.camera_id)
+                    await asyncio.sleep(2)
 
     @router.subscriber(channel=Channel.WORKER_EVENTS)
     async def consume_worker_event(event: WorkerEvent) -> None:

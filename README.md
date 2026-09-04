@@ -35,7 +35,7 @@ your own hardware.
 - **Live monitor.** Low-latency WebRTC playback with detection overlays, an
   event feed, and alert history next to every camera.
 - **Self-hosted.** One `docker compose up`, PostgreSQL and Valkey for state,
-  MediaMTX for media, no cloud dependency.
+  MediaMTX for streams, RustFS for video storage, no cloud dependency.
 
 ![Live monitor with a zone overlay and detections](.github/screenshots/monitor.jpg)
 
@@ -68,13 +68,19 @@ You need Docker with Compose 2.24 or later.
 git clone https://github.com/okoflow/looksee.git
 cd looksee
 cp .env.example .env
+```
+
+Set private `POSTGRES_PASSWORD`, `MTX_MEDIA_PASSWORD`, and `STORAGE_PASSWORD`
+values in `.env`, then start the stack:
+
+```bash
 docker compose up -d --build
 ```
 
 Open [http://127.0.0.1:3000](http://127.0.0.1:3000) and create the owner
-account. The defaults in `.env.example` work on one machine; for a server on
-your network set `WEBRTC_HOST_IP` to its address and change the example
-passwords.
+account. RustFS stores uploaded videos in a persistent Docker volume; the
+video bucket is created automatically. For a server on your network, set
+`WEBRTC_HOST_IP` to its address.
 
 > [!WARNING]
 > Until the owner account exists, anyone who can reach the web interface can
@@ -89,11 +95,8 @@ how to export a model.
 ## Documentation
 
 Guides and reference live in
-[looksee-docs](https://github.com/okoflow/looksee-docs):
-[English](https://github.com/okoflow/looksee-docs/blob/main/en/index.md) ·
-[Русский](https://github.com/okoflow/looksee-docs/blob/main/ru/index.md) ·
-[עברית](https://github.com/okoflow/looksee-docs/blob/main/he/index.md) ·
-[한국어](https://github.com/okoflow/looksee-docs/blob/main/ko/index.md).
+[looksee-docs](https://github.com/okoflow/looksee-docs), available in English,
+Russian, Hebrew, and Korean.
 
 Start with *Getting started*, then *Concepts* for the workflow model and
 *Nodes* for every node and its fields.
