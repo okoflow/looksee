@@ -46,14 +46,15 @@ service by saturating a camera stream you are entitled to publish.
 
 - Create the owner account immediately after the first start. Until it
   exists, anyone who can reach the web interface can claim the instance.
-- Change `POSTGRES_PASSWORD` and `MTX_MEDIA_PASSWORD` from the example values.
-  The MediaMTX credentials are handed to browsers for live playback, so treat
-  them as access details for a trusted network, not as backend secrets.
+- Set private `POSTGRES_PASSWORD`, `MTX_MEDIA_PASSWORD`, and `STORAGE_PASSWORD`
+  values. They are backend secrets: browsers receive short-lived,
+  camera-scoped grants from the API instead of the MediaMTX password.
 - Put Studio and the API behind a reverse proxy with TLS, set
   `AUTH_COOKIE_SECURE=true`, and narrow `CORS_ORIGIN_REGEX` to your origin.
 - Set `SECRET_KEY` explicitly or back up the `api_keys` volume. It signs
   sessions and encrypts stored credentials; losing it invalidates both.
-- PostgreSQL, Valkey, and the MediaMTX control API bind to `127.0.0.1`.
+- PostgreSQL, Valkey, the video storage, and the MediaMTX control API bind
+  to `127.0.0.1`.
   RTSP (`8554`) and WebRTC (`8889`, `8189/udp`) bind to all interfaces so
   cameras and browsers can reach them; firewall them to the networks that
   need access.
