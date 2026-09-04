@@ -581,7 +581,7 @@ wheels = [
 
 [[package]]
 name = "looksee"
-version = "0.1.0"
+version = "0.2.0"
 source = { virtual = "." }
 
 [package.dev-dependencies]
@@ -604,7 +604,7 @@ dev = [
 
 [[package]]
 name = "looksee-api"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "apps/api" }
 dependencies = [
     { name = "aiomqtt" },
@@ -659,7 +659,7 @@ requires-dist = [
 
 [[package]]
 name = "looksee-ee"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "ee/api" }
 dependencies = [
     { name = "looksee-api" },
@@ -674,7 +674,7 @@ requires-dist = [
 
 [[package]]
 name = "looksee-inference"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "apps/inference" }
 dependencies = [
     { name = "av" },
@@ -720,7 +720,7 @@ provides-extras = ["cpu", "gpu"]
 
 [[package]]
 name = "looksee-shared"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "packages/shared" }
 dependencies = [
     { name = "pydantic" },
