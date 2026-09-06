@@ -133,6 +133,8 @@ hardening steps for a deployment.
 
 ## License
 
+Copyright The LookSee Authors, listed in [AUTHORS](AUTHORS).
+
 Apache-2.0, except the `ee/` directory, which is under the
-[LookSee Enterprise license](ee/LICENSE). See [LICENSE](LICENSE) and
-[AUTHORS](AUTHORS).
+[LookSee Enterprise license](ee/LICENSE). Third-party components keep their
+own licenses. See [LICENSE](LICENSE).
