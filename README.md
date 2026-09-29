@@ -89,8 +89,8 @@ video bucket is created automatically. For a server on your network, set
 
 LookSee ships without detection models. A model is a directory under `models/`
 with a `manifest.json` and a `model.onnx` exported from D-FINE; the API picks
-it up on the next request. The documentation explains the bundle format and
-how to export a model.
+it up on the next request. The [documentation](https://github.com/okoflow/looksee-docs)
+explains the bundle format and how to export a model.
 
 ## Documentation
 
