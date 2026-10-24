@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import type { PropsWithChildren } from "react";
-import { AppProviders } from "@/_app/providers";
+import { AppProviders } from "@/_app/entrypoint";
 import "@/_app/styles/globals.css";
 import { EnvironmentScript } from "@/shared/config/index.server";
 import { cn } from "@/shared/lib/cn";
