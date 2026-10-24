@@ -1,8 +1,6 @@
 # Studio
 
-Studio is LookSee's Next.js interface for creating workflows and observing
-them in real time. It provides a graph editor, model-aware node configuration, live WHEP
-playback, browser-webcam publishing, detection overlays, event feeds, and alert history.
+Studio is LookSee's Next.js interface for creating workflows and observing them in real time. It provides a graph editor, model-aware node configuration, live WHEP playback, browser-webcam publishing, detection overlays, event feeds, and alert history.
 
 ## Layout
 
@@ -17,9 +15,7 @@ src/
 └── shared/    API client, runtime configuration, routes, utilities, and UI primitives
 ```
 
-The application follows Feature-Sliced Design. Import across slices through each slice's
-public `index.ts`, use relative imports inside a slice, and keep dependencies directed
-downward from pages and widgets toward features, entities, and shared code.
+The application follows Feature-Sliced Design. Import across slices through each slice's public `index.ts`, use relative imports inside a slice, and keep dependencies directed downward from pages and widgets toward features, entities, and shared code.
 
 ## Run locally
 
@@ -28,20 +24,12 @@ pnpm -C apps/studio install --frozen-lockfile
 pnpm -C apps/studio dev
 ```
 
-The interface is served at `http://localhost:3000` and expects the API and MediaMTX on
-their default localhost ports.
+The interface is served at `http://localhost:3000` and expects the API and MediaMTX on their default localhost ports.
 
 ## Runtime configuration
 
-The server validates public runtime values on each request and injects them into the page,
-so a deployed image can be repointed without rebuilding: `RUNTIME_API_URL`,
-`RUNTIME_WS_URL`, `RUNTIME_MEDIAMTX_WEBRTC_URL`, `RUNTIME_DOCS_URL`,
-`RUNTIME_GITHUB_URL`. These values are public. Service credentials are never included:
-playback and webcam publishing request short-lived, camera-scoped grants from the API.
+The server validates public runtime values on each request and injects them into the page, so a deployed image can be repointed without rebuilding: `RUNTIME_API_URL`, `RUNTIME_WS_URL`, `RUNTIME_MEDIAMTX_WEBRTC_URL`, `RUNTIME_DOCS_URL`, `RUNTIME_GITHUB_URL`. These values are public. Service credentials are never included: playback and webcam publishing request short-lived, camera-scoped grants from the API.
 
-`SERVER_API_URL` is server-only: the auth guard resolves sessions against it, so inside
-compose it points at the internal `http://api:8000` service address.
+`SERVER_API_URL` is server-only: the auth guard resolves sessions against it, so inside compose it points at the internal `http://api:8000` service address.
 
-Geist is bundled locally under its SIL Open Font License, so production builds do
-not need to contact Google Fonts. Validate changes with lint, architecture lint,
-typecheck, and production build; the repository does not include a Studio test runner.
+Geist is bundled locally under its SIL Open Font License, so production builds do not need to contact Google Fonts. Validate changes with lint, architecture lint, typecheck, and production build; the repository does not include a Studio test runner.
