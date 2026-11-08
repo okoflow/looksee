@@ -5,7 +5,7 @@
   "license": "Apache-2.0",
   "contributors": [
     "Vlad Svidskiy",
-    "Alexey Pereslytskikh"
+    "Aleksei Pereslytskikh"
   ],
   "scripts": {
     "build": "next build",
