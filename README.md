@@ -4,7 +4,7 @@
 
 <h1 align="center">Looksee</h1>
 
-<p align="center">Self-hosted video analytics with a visual workflow editor.</p>
+<p align="center">Self-hosted video analytics and automation.</p>
 
 <p align="center">
   <a href="https://github.com/okoflow/looksee/actions/workflows/ci.yml"><img src="https://github.com/okoflow/looksee/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
