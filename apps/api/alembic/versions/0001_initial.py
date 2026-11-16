@@ -1,4 +1,4 @@
-"""Create the LookSee schema.
+"""Create the Looksee schema.
 
 Revision ID: 0001
 Revises:

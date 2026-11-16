@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for helping build LookSee. This guide covers how to set up a development environment, the checks a change has to pass, and how commits and pull requests are shaped. Everyone participating agrees to the [Code of Conduct](CODE_OF_CONDUCT.md).
+Thank you for helping build Looksee. This guide covers how to set up a development environment, the checks a change has to pass, and how commits and pull requests are shaped. Everyone participating agrees to the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Ways to contribute
 
@@ -117,4 +117,4 @@ Commits follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org/
 
 ## Licensing of contributions
 
-Code outside `ee/` is licensed under Apache-2.0 and code inside `ee/` under the [LookSee Enterprise license](ee/LICENSE). By submitting a contribution you agree that it is licensed under the license of the directory it lands in.
+Code outside `ee/` is licensed under Apache-2.0 and code inside `ee/` under the [Looksee Enterprise license](ee/LICENSE). By submitting a contribution you agree that it is licensed under the license of the directory it lands in.

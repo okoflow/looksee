@@ -1,6 +1,6 @@
 # Studio
 
-Studio is LookSee's Next.js interface for creating workflows and observing them in real time. It provides a graph editor, model-aware node configuration, live WHEP playback, browser-webcam publishing, detection overlays, event feeds, and alert history.
+Studio is Looksee's Next.js interface for creating workflows and observing them in real time. It provides a graph editor, model-aware node configuration, live WHEP playback, browser-webcam publishing, detection overlays, event feeds, and alert history.
 
 ## Layout
 

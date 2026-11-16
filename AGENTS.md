@@ -1,4 +1,4 @@
-# LookSee
+# Looksee
 
 Self-hosted video analytics system for live streams, browser webcams, and local video files. It runs ONNX object detection, tracks objects, derives semantic events, and routes those events through visual workflows to alerts and external integrations.
 

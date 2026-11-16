@@ -12,7 +12,7 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    app_name: str = "LookSee API"
+    app_name: str = "Looksee API"
 
     license_key: str | None = None
 

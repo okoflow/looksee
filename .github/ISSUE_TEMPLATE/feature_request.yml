@@ -19,7 +19,7 @@ body:
     id: proposal
     attributes:
       label: Proposal
-      description: How LookSee could solve it. A new node, a new option on an existing node, an integration, a deployment change.
+      description: How Looksee could solve it. A new node, a new option on an existing node, an integration, a deployment change.
     validations:
       required: true
   - type: textarea

@@ -49,7 +49,7 @@ export function PaletteItem({ definition, locked }: PaletteItemProps) {
       </TooltipTrigger>
 
       <TooltipContent side="right">
-        {locked ? `${definition.description} Requires a LookSee Enterprise license.` : definition.description}
+        {locked ? `${definition.description} Requires a Looksee Enterprise license.` : definition.description}
       </TooltipContent>
     </Tooltip>
   );

@@ -42,10 +42,10 @@ export function AppSidebar() {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton render={<Link href="/" />} tooltip="LookSee">
-              <Image alt="LookSee" className="size-5 shrink-0" src={logomark} />
+            <SidebarMenuButton render={<Link href="/" />} tooltip="Looksee">
+              <Image alt="Looksee" className="size-5 shrink-0" src={logomark} />
 
-              <span className="font-semibold">LookSee</span>
+              <span className="font-semibold">Looksee</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

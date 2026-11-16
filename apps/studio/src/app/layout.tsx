@@ -15,10 +15,10 @@ const geist = localFont({
 });
 
 export const metadata: Metadata = {
-  applicationName: "LookSee",
+  applicationName: "Looksee",
   title: {
-    default: "LookSee",
-    template: "%s · LookSee",
+    default: "Looksee",
+    template: "%s · Looksee",
   },
   description: "Self-hosted video analytics and visual automation workflows.",
 };
