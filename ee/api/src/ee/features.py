@@ -1,4 +1,4 @@
-"""Feature slugs a LookSee Enterprise license can unlock."""
+"""Feature slugs a Looksee Enterprise license can unlock."""
 
 MEASUREMENT_FILTERS = "measurement_filters"
 ENTERPRISE_INTEGRATIONS = "enterprise_integrations"

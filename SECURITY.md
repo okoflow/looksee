@@ -1,6 +1,6 @@
 # Security Policy
 
-LookSee is self-hosted software that ingests video, stores credentials for external integrations, and exposes a web interface. Security reports are taken seriously and handled privately until a fix is available.
+Looksee is self-hosted software that ingests video, stores credentials for external integrations, and exposes a web interface. Security reports are taken seriously and handled privately until a fix is available.
 
 ## Supported versions
 
@@ -26,7 +26,7 @@ You receive an acknowledgement within three business days and a triage decision 
 
 In scope: everything in this repository, including the API, the inference service, Studio, the shared contracts, the Enterprise code under `ee/`, `compose.yaml`, the Dockerfiles, and the published container images.
 
-Out of scope: vulnerabilities in upstream projects such as MediaMTX, PostgreSQL, Valkey, or ONNX Runtime unless a LookSee default configuration causes them; deployments that ignore the hardening notes below; denial of service by saturating a camera stream you are entitled to publish.
+Out of scope: vulnerabilities in upstream projects such as MediaMTX, PostgreSQL, Valkey, or ONNX Runtime unless a Looksee default configuration causes them; deployments that ignore the hardening notes below; denial of service by saturating a camera stream you are entitled to publish.
 
 ## Hardening a deployment
 

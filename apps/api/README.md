@@ -1,6 +1,6 @@
 # API service
 
-The API is LookSee's FastAPI control plane. It owns workflows, desired camera state, model discovery, event policy, actions, alerts, and per-camera realtime updates. It does not decode video or run ONNX models.
+The API is Looksee's FastAPI control plane. It owns workflows, desired camera state, model discovery, event policy, actions, alerts, and per-camera realtime updates. It does not decode video or run ONNX models.
 
 ## Layout
 

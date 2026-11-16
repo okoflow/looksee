@@ -1,1 +1,1 @@
-"""LookSee Enterprise Edition; use is governed by ee/LICENSE."""
+"""Looksee Enterprise Edition; use is governed by ee/LICENSE."""
