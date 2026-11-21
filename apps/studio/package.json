@@ -50,7 +50,7 @@
     "steiger": "^0.7.0",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
-    "ultracite": "7.12.4"
+    "ultracite": "8.0.1"
   },
   "packageManager": "pnpm@11.11.0"
 }
