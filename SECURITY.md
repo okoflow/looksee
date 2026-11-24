@@ -4,10 +4,10 @@ This page covers which versions of Looksee are supported, how to report a vulner
 
 ## Supported versions
 
-| Version | Supported |
-| --- | --- |
-| The latest release and `main` | Yes |
-| Older releases | No, update to the latest release |
+| Version                       | Supported                        |
+| ----------------------------- | -------------------------------- |
+| The latest release and `main` | Yes                              |
+| Older releases                | No, update to the latest release |
 
 ## Reporting a vulnerability
 

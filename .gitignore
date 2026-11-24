@@ -1,28 +1,48 @@
+# Dependencies
+
 .venv/
 venv/
 ENV/
 __pypackages__/
 node_modules/
-
-build/
-dist/
-*.egg-info/
-.eggs/
-.next/
-out/
-*.tsbuildinfo
-next-env.d.ts
-
 .pnpm-store/
 .pnpm/
 .npm/
 .yarn/cache/
 .yarn/unplugged/
 
+# Build
+
+build/
+dist/
+out/
+.next/
+.eggs/
+*.egg-info/
+*.so
+
+# Generated
+
+*.tsbuildinfo
+next-env.d.ts
+
+# Runtime
+
+/logs/
+*.log
+pnpm-debug.log*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.pid
+*.pid.lock
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Cache
+
 __pycache__/
 *.py[codz]
 *$py.class
-*.so
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
@@ -37,40 +57,25 @@ __pycache__/
 .swc/
 .eslintcache
 .stylelintcache
-.nyc_output/
-report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Tests
 
 .coverage
 .coverage.*
 coverage.xml
 coverage/
 htmlcov/
+.nyc_output/
 
-.env
-.env.*
-!.env.example
-.envrc
-.direnv/
-
-*.pem
-*.key
-*.p12
-*.pfx
-
-*.log
-/logs/
-pnpm-debug.log*
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# Data
 
 /data/
-*.pid
-*.pid.lock
 *.sqlite
 *.sqlite3
 *.sqlite-journal
 *.sqlite3-journal
+
+# Models
 
 *.onnx
 *.ort
@@ -103,6 +108,24 @@ events.out.tfevents.*
 .dvc/cache/
 .dvc/tmp/
 
+# Secrets
+
+.env
+.env.*
+!.env.example
+.envrc
+.direnv/
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Local
+
+.python-version.local
+
+# Editors
+
 .idea/
 .vscode/
 .fleet/
@@ -111,7 +134,7 @@ events.out.tfevents.*
 *.swo
 *~
 
+# System
+
 .DS_Store
 Thumbs.db
-
-.python-version.local
