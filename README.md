@@ -77,15 +77,15 @@ Start with *Getting started*, then *Concepts* for the workflow model and *Nodes*
 
 ## Repository
 
-| Path | What lives there |
-| --- | --- |
-| [`apps/api`](apps/api) | FastAPI control plane: workflows, cameras, events, actions, alerts |
-| [`apps/inference`](apps/inference) | ONNX detection service: decoding, models, tracking |
-| [`apps/studio`](apps/studio) | Next.js interface: workflow editor and live monitor |
-| [`packages/shared`](packages/shared) | Pydantic wire contracts between the API and inference |
-| [`ee/api`](ee/api) | Enterprise node types and integrations |
-| `models` | Model bundles, discovered at runtime |
-| `docker`, `compose.yaml` | MediaMTX configuration and the deployment stack |
+| Path                                 | What lives there                                                   |
+| ------------------------------------ | ------------------------------------------------------------------ |
+| [`apps/api`](apps/api)               | FastAPI control plane: workflows, cameras, events, actions, alerts |
+| [`apps/inference`](apps/inference)   | ONNX detection service: decoding, models, tracking                 |
+| [`apps/studio`](apps/studio)         | Next.js interface: workflow editor and live monitor                |
+| [`packages/shared`](packages/shared) | Pydantic wire contracts between the API and inference              |
+| [`ee/api`](ee/api)                   | Enterprise node types and integrations                             |
+| `models`                             | Model bundles, discovered at runtime                               |
+| `docker`, `compose.yaml`             | MediaMTX configuration and the deployment stack                    |
 
 [CONTRIBUTING.md](CONTRIBUTING.md) covers the development setup, the checks that run in CI, and the commit and pull request conventions. Each package README describes its internal layout.
 

@@ -12,15 +12,15 @@ Thank you for helping build Looksee. This guide covers how to set up a developme
 
 ## Repository layout
 
-| Path | What lives there |
-| --- | --- |
-| `apps/api` | FastAPI control plane: workflows, cameras, events, actions, alerts |
-| `apps/inference` | ONNX detection service: decoding, models, tracking |
-| `apps/studio` | Next.js interface: workflow editor and live monitor |
-| `packages/shared` | Pydantic wire contracts between the API and inference |
-| `ee/api` | Enterprise node types and integrations under `ee/LICENSE` |
-| `models` | Model bundles: `manifest.json` plus an ignored `model.onnx` |
-| `docker`, `compose.yaml` | MediaMTX configuration and the deployment stack |
+| Path                     | What lives there                                                   |
+| ------------------------ | ------------------------------------------------------------------ |
+| `apps/api`               | FastAPI control plane: workflows, cameras, events, actions, alerts |
+| `apps/inference`         | ONNX detection service: decoding, models, tracking                 |
+| `apps/studio`            | Next.js interface: workflow editor and live monitor                |
+| `packages/shared`        | Pydantic wire contracts between the API and inference              |
+| `ee/api`                 | Enterprise node types and integrations under `ee/LICENSE`          |
+| `models`                 | Model bundles: `manifest.json` plus an ignored `model.onnx`        |
+| `docker`, `compose.yaml` | MediaMTX configuration and the deployment stack                    |
 
 Each Python package and Studio has a README that explains its internal layout and the rules for extending it.
 
