@@ -1,26 +1,25 @@
-# Security Policy
+# Security policy
 
-Looksee is self-hosted software that ingests video, stores credentials for external integrations, and exposes a web interface. Security reports are taken seriously and handled privately until a fix is available.
+This page covers which versions of Looksee are supported, how to report a vulnerability, and what is in scope. Looksee is self-hosted software that ingests video, stores credentials for external integrations, and exposes a web interface.
 
 ## Supported versions
 
 | Version | Supported |
 | --- | --- |
-| `main` | Yes |
-| Latest release | Yes |
-| Older releases | No, upgrade to the latest release |
+| The latest release and `main` | Yes |
+| Older releases | No, update to the latest release |
 
 ## Reporting a vulnerability
 
-Report vulnerabilities through [GitHub private vulnerability reporting](https://github.com/okoflow/looksee/security/advisories/new). Do not open a public issue, pull request, or discussion for a security problem.
+Report a vulnerability through [GitHub private vulnerability reporting](https://github.com/okoflow/looksee/security/advisories/new). Don't open a public issue, pull request, or discussion for a security problem.
 
 Include what helps reproduce and assess the issue:
 
-- the affected component (`api`, `inference`, `studio`, `shared`, `ee`, compose, or Docker images) and the commit or release version
-- steps to reproduce, a proof of concept, or the request that triggers it
-- the impact you expect, and the deployment shape it applies to (Docker Compose, native, behind a reverse proxy)
+- The affected component (`api`, `inference`, `studio`, `shared`, `ee`, compose, or Docker images) and the commit or release version.
+- Steps to reproduce, a proof of concept, or the request that triggers it.
+- The impact you expect, and the deployment shape it applies to (Docker Compose, native, behind a reverse proxy).
 
-You receive an acknowledgement within three business days and a triage decision within seven. Fixes ship as a patch release with a security advisory that credits the reporter unless they prefer otherwise. Please keep the report private until the advisory is published.
+You receive an acknowledgment within three business days and a triage decision within seven business days. A confirmed vulnerability is fixed in a patch release and disclosed in a GitHub security advisory that credits you, unless you ask otherwise. Keep the report private until the advisory is published.
 
 ## Scope
 
