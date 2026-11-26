@@ -21,4 +21,5 @@ class Settings(BaseSettings):
     last_frame_ttl_seconds: Annotated[int, Field(gt=0)] = 10
 
 
-settings = Settings()
+# REDIS_URL comes from the environment, which the checker cannot see.
+settings = Settings()  # pyright: ignore[reportCallIssue]
