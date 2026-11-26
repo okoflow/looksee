@@ -20,7 +20,8 @@ _redis = Redis.from_url(settings.redis_url, socket_timeout=5.0, socket_connect_t
 
 async def get_last_frame(camera_id: UUID) -> bytes | None:
     try:
-        return await _redis.get(last_frame_key(camera_id))
+        frame = await _redis.get(last_frame_key(camera_id))
+        return frame if isinstance(frame, bytes) else None
     except Exception:
         logger.exception("last frame fetch failed camera=%s", camera_id)
 

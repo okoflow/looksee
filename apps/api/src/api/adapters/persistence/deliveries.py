@@ -63,9 +63,10 @@ class PostgresDeliveryQueue:
 
             row.status = "processing"
             row.attempts += 1
-            row.lease_id = uuid4()
+            lease_id = uuid4()
+            row.lease_id = lease_id
             row.lease_until = now + timedelta(seconds=60)
-            job = DeliveryJob(row.id, row.lease_id, row.attempts, request)
+            job = DeliveryJob(row.id, lease_id, row.attempts, request)
             await session.commit()
 
             return job
@@ -74,7 +75,7 @@ class PostgresDeliveryQueue:
         await self._finish(job, status="sent", payload={}, last_error=None)
 
     async def fail(self, job: DeliveryJob, reason: str, retry_at: datetime | None) -> None:
-        fields = {"status": "failed", "last_error": reason[:256]}
+        fields: dict[str, object] = {"status": "failed", "last_error": reason[:256]}
         if retry_at is not None:
             fields.update(status="pending", available_at=retry_at)
 
