@@ -4,6 +4,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.adapters.persistence.models import User
+from api.application.auth import Account
 from api.application.errors import ResourceConflictError
 
 _OWNER_SETUP_LOCK = 4_672_793_681
@@ -16,7 +17,7 @@ class SqlAlchemyAccounts:
     async def any_users(self) -> bool:
         return bool(await self._session.scalar(select(func.count(User.id))))
 
-    async def claim_owner(self, *, email: str, name: str, password_hash: str) -> User:
+    async def claim_owner(self, *, email: str, name: str, password_hash: str) -> Account:
         await self._session.execute(select(func.pg_advisory_xact_lock(_OWNER_SETUP_LOCK)))
         if await self.any_users():
             await self._session.rollback()
@@ -27,12 +28,26 @@ class SqlAlchemyAccounts:
         await self._session.commit()
         await self._session.refresh(owner)
 
-        return owner
+        return _to_account(owner)
 
-    async def by_email(self, email: str) -> User | None:
+    async def by_email(self, email: str) -> Account | None:
         result = await self._session.execute(select(User).where(User.email == email))
+        user = result.scalar_one_or_none()
 
-        return result.scalar_one_or_none()
+        return _to_account(user) if user is not None else None
 
-    async def by_id(self, user_id: UUID) -> User | None:
-        return await self._session.get(User, user_id)
+    async def by_id(self, user_id: UUID) -> Account | None:
+        user = await self._session.get(User, user_id)
+
+        return _to_account(user) if user is not None else None
+
+
+def _to_account(user: User) -> Account:
+    return Account(
+        id=user.id,
+        email=user.email,
+        name=user.name,
+        password_hash=user.password_hash,
+        role=user.role,
+        created_at=user.created_at,
+    )

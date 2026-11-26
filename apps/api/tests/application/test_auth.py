@@ -85,7 +85,7 @@ async def test_authenticate_matches_email_case_insensitively(fake_session):
         password="Secret123",
     )
 
-    assert user is owner
+    assert user == owner
 
 
 async def test_authenticate_rejects_wrong_password(fake_session):
@@ -128,5 +128,5 @@ async def test_get_user_returns_none_for_unknown_id(fake_session):
     found = await auth.get_user(SqlAlchemyAccounts(fake_session), owner.id)
     missing = await auth.get_user(SqlAlchemyAccounts(fake_session), owner.id.__class__(int=0))
 
-    assert found is owner
+    assert found == owner
     assert missing is None

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Protocol
 
 from api.application.errors import InvalidCredentialsError
@@ -12,7 +13,8 @@ if TYPE_CHECKING:
     from uuid import UUID
 
 
-class Account(Protocol):
+@dataclass(frozen=True, slots=True)
+class Account:
     id: UUID
     email: str
     name: str
