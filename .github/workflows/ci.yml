@@ -70,6 +70,9 @@ jobs:
       - name: Formatting
         run: uv run ruff format --check .
 
+      - name: Types
+        run: uv run pyright
+
       - name: Tests
         run: uv run pytest -q
 
