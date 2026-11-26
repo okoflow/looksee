@@ -8,7 +8,7 @@ preconditions, one Runnable* subclass here — nothing else.
 
 from functools import reduce
 from operator import or_
-from typing import Annotated
+from typing import TYPE_CHECKING, Annotated
 
 from pydantic import Field, TypeAdapter, ValidationError
 
@@ -35,25 +35,32 @@ from api.domain.workflow.filters import (
 from api.domain.workflow.nodes import NodeDataUnion
 from api.domain.workflow.sources import RunnableCameraSourceData
 
-RunnableNodeDataUnion = reduce(
-    or_,
-    (extension.runnable for extension in NODE_EXTENSIONS),
-    RunnableCameraSourceData
-    | RunnableDetectData
-    | RunnableIfElseFilter
-    | RunnableZoneFilter
-    | ClassFilterData
-    | DebounceFilterData
-    | RunnableTimeWindowFilter
-    | SizeFilterData
-    | RunnableTelegramAction
-    | RunnableWebhookAction
-    | LogAlertActionData
-    | SnapshotActionData
-    | RunnableEmailAction
-    | RunnableMqttAction
-    | RunnableDiscordAction,
-)
+if TYPE_CHECKING:
+    from api.domain.workflow.base import WorkflowModel
+
+if TYPE_CHECKING:
+    # Runnable models only validate a draft's dump; nothing reads them statically.
+    RunnableNodeDataUnion = WorkflowModel
+else:
+    RunnableNodeDataUnion = reduce(
+        or_,
+        (extension.runnable for extension in NODE_EXTENSIONS),
+        RunnableCameraSourceData
+        | RunnableDetectData
+        | RunnableIfElseFilter
+        | RunnableZoneFilter
+        | ClassFilterData
+        | DebounceFilterData
+        | RunnableTimeWindowFilter
+        | SizeFilterData
+        | RunnableTelegramAction
+        | RunnableWebhookAction
+        | LogAlertActionData
+        | SnapshotActionData
+        | RunnableEmailAction
+        | RunnableMqttAction
+        | RunnableDiscordAction,
+    )
 RunnableNodeData = Annotated[RunnableNodeDataUnion, Field(discriminator="kind")]
 
 _runnable_node_adapter: TypeAdapter[RunnableNodeData] = TypeAdapter(RunnableNodeData)

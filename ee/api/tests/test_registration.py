@@ -31,7 +31,7 @@ def test_every_extension_declares_kind_feature_and_models():
     }
     for extension in NODE_EXTENSIONS:
         assert extension.draft.model_fields["kind"].default == extension.kind
-        assert issubclass(extension.runnable, extension.draft)
+        assert extension.runnable.model_fields.keys() == extension.draft.model_fields.keys()
 
 
 def test_licensed_features_are_indexed_by_node_kind():

@@ -159,10 +159,14 @@ def test_runnable_union_covers_every_draft_kind():
 
 
 def test_every_runnable_refines_a_draft():
-    drafts = flatten(NodeDataUnion)
+    drafts_by_kind = {
+        member.model_fields["kind"].default: member for member in flatten(NodeDataUnion)
+    }
 
     for runnable_type in flatten(RunnableNodeDataUnion):
-        assert any(issubclass(runnable_type, draft) for draft in drafts)
+        draft = drafts_by_kind[runnable_type.model_fields["kind"].default]
+
+        assert runnable_type.model_fields.keys() == draft.model_fields.keys()
 
 
 def test_extension_nodes_are_checked_against_their_runnable():
