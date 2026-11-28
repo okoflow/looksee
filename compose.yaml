@@ -24,7 +24,7 @@ x-env-file: &env-file
 services:
   storage:
     <<: *service-defaults
-    image: rustfs/rustfs:1.0.0-rc.5
+    image: rustfs/rustfs:1.0.6
     command: ["/data"]
     environment:
       RUSTFS_ACCESS_KEY: looksee
