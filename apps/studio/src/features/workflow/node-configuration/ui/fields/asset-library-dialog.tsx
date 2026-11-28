@@ -171,8 +171,8 @@ function AssetPreviewCard({ asset, isSelected, onSelect }: AssetPreviewCardProps
   return (
     <button
       className={cn(
-        "flex flex-col overflow-hidden rounded-lg border text-left outline-none transition-colors hover:border-ring/60 focus-visible:ring-2 focus-visible:ring-ring",
-        isSelected && "border-ring ring-2 ring-ring/40"
+        "hover:border-ring/60 focus-visible:ring-ring flex flex-col overflow-hidden rounded-lg border text-left transition-colors outline-none focus-visible:ring-2",
+        isSelected && "border-ring ring-ring/40 ring-2"
       )}
       onClick={handleClick}
       onMouseEnter={handleMouseEnter}
@@ -192,7 +192,7 @@ function AssetPreviewCard({ asset, isSelected, onSelect }: AssetPreviewCardProps
       <span className="flex w-full shrink-0 items-center gap-2 px-2 py-1.5">
         <span className="truncate text-xs">{asset.key}</span>
 
-        <span className="ml-auto shrink-0 text-muted-foreground text-xs">{formatBytes(asset.size)}</span>
+        <span className="text-muted-foreground ml-auto shrink-0 text-xs">{formatBytes(asset.size)}</span>
       </span>
     </button>
   );

@@ -23,13 +23,13 @@ export function ShapeOverlay({ className, points, shape }: ShapeOverlayProps) {
     >
       {shape === "polygon" ? (
         <polygon
-          className={cn("fill-primary/15 stroke-2 stroke-primary", className)}
+          className={cn("fill-primary/15 stroke-primary stroke-2", className)}
           points={svgPoints}
           vectorEffect="non-scaling-stroke"
         />
       ) : (
         <polyline
-          className={cn("fill-none stroke-2 stroke-primary", className)}
+          className={cn("stroke-primary fill-none stroke-2", className)}
           points={svgPoints}
           vectorEffect="non-scaling-stroke"
         />

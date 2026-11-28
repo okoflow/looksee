@@ -76,7 +76,7 @@ export function WorkflowSetupStep({
           })}
         </FieldGroup>
 
-        {preset?.hint ? <p className="mt-3 text-muted-foreground text-xs">{preset.hint}</p> : null}
+        {preset?.hint ? <p className="text-muted-foreground mt-3 text-xs">{preset.hint}</p> : null}
 
         <DialogFooter className="mt-4">
           <Button onClick={onBack} type="button" variant="ghost">

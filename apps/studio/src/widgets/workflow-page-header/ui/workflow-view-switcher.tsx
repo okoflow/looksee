@@ -18,14 +18,14 @@ export function WorkflowViewSwitcher({ workflowId }: WorkflowViewSwitcherProps) 
   ];
 
   return (
-    <nav className="flex items-center gap-0.5 rounded-lg bg-muted p-0.5">
+    <nav className="bg-muted flex items-center gap-0.5 rounded-lg p-0.5">
       {views.map((view) => {
         const isActive = pathname === view.href;
 
         return (
           <Link
             className={cn(
-              "rounded-md px-3 py-1 font-medium text-sm transition",
+              "rounded-md px-3 py-1 text-sm font-medium transition",
               isActive ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
             )}
             href={view.href}

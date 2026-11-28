@@ -112,7 +112,7 @@ function VertexHandle({ index, onMove, onRemove, point }: VertexHandleProps) {
   return (
     <button
       aria-label={`Point ${index + 1} — drag to move, double-click to remove`}
-      className="absolute size-3 -translate-x-1/2 -translate-y-1/2 cursor-grab rounded-full border-2 border-background bg-primary shadow-xs active:cursor-grabbing"
+      className="border-background bg-primary absolute size-3 -translate-x-1/2 -translate-y-1/2 cursor-grab rounded-full border-2 shadow-xs active:cursor-grabbing"
       onClick={handleClick}
       onDoubleClick={handleDoubleClick}
       onPointerDown={handlePointerDown}

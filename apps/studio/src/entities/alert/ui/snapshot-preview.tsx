@@ -13,7 +13,7 @@ export function SnapshotPreview({ caption, url }: SnapshotPreviewProps) {
     <Dialog>
       <DialogTrigger
         aria-label={`Open snapshot: ${caption}`}
-        render={<button className="shrink-0 rounded border transition hover:border-ring" type="button" />}
+        render={<button className="hover:border-ring shrink-0 rounded border transition" type="button" />}
       >
         <Image alt="" className="h-8 w-14 rounded object-cover" height={32} src={url} unoptimized width={56} />
       </DialogTrigger>

@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 
 import av
 import janus
+from av.error import FFmpegError
 
 if TYPE_CHECKING:
     import numpy as np
@@ -107,7 +108,7 @@ class RtspReader:
                 if self._last_frame_at >= attempt_started_at:
                     retry_delay = _INITIAL_RETRY_DELAY
 
-                level = logging.WARNING if isinstance(exc, av.FFmpegError) else logging.ERROR
+                level = logging.WARNING if isinstance(exc, FFmpegError) else logging.ERROR
                 logger.log(
                     level,
                     "rtsp decode failed source=%s retry=%.1fs",

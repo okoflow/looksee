@@ -4,7 +4,7 @@ import asyncio
 import logging
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from shared import Detection, DetectionFrame, StartStream, WorkerErrored, WorkerStarted
 
@@ -235,12 +235,15 @@ def _detect_and_track(
     detections = detector.detect(frame)
     confidence = _required_field(detections.confidence, "confidence")
 
-    return tracker.update(detections[confidence >= confidence_threshold])
+    # Boolean-mask indexing always yields Detections; the stub returns a wider union.
+    confident = cast("sv.Detections", detections[confidence >= confidence_threshold])
+
+    return tracker.update(confident)
 
 
-def _to_schema(detector: DetectionModel, detections: sv.Detections) -> list[Detection]:
+def _to_schema(detector: DetectionModel, detections: sv.Detections) -> tuple[Detection, ...]:
     if len(detections) == 0:
-        return []
+        return ()
 
     confidence = _required_field(detections.confidence, "confidence")
     class_ids = _required_field(detections.class_id, "class_id")
@@ -248,7 +251,7 @@ def _to_schema(detector: DetectionModel, detections: sv.Detections) -> list[Dete
     untracked = [-1] * len(detections)
     tracker_ids = untracked if detections.tracker_id is None else detections.tracker_id
 
-    return [
+    return tuple(
         Detection(
             label=detector.label_for(int(class_id)),
             bounding_box=(float(box[0]), float(box[1]), float(box[2]), float(box[3])),
@@ -263,7 +266,7 @@ def _to_schema(detector: DetectionModel, detections: sv.Detections) -> list[Dete
             tracker_ids,
             strict=True,
         )
-    ]
+    )
 
 
 def _required_field[Value](value: Value | None, name: str) -> Value:

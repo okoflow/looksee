@@ -16,6 +16,7 @@ CORE_MODULES = (
     "frame_processing",
     "media",
     "rate_limits",
+    "retention",
     "workflow_validation",
 )
 PROTECTED_FILES = (

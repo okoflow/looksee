@@ -9,14 +9,17 @@ from api.domain.credentials import CredentialType
 from api.domain.workflow.actions import ActionNodeData
 
 
-class SlackActionData(ActionNodeData):
-    """Slack incoming-webhook message."""
-
+class _SlackActionFields(ActionNodeData):
     kind: Literal["slack_action"] = "slack_action"
     credential_type: ClassVar[CredentialType | None] = "slack_webhook"
-    credential_id: str = Field(default="", max_length=36)
     message_template: str = Field(default="[{kind}] camera={camera_id} at {ts}", max_length=4096)
 
 
-class RunnableSlackAction(SlackActionData):
+class SlackActionData(_SlackActionFields):
+    """Slack incoming-webhook message."""
+
+    credential_id: str = Field(default="", max_length=36)
+
+
+class RunnableSlackAction(_SlackActionFields):
     credential_id: UUID

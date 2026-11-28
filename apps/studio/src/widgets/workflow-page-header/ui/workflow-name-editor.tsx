@@ -67,7 +67,7 @@ export function WorkflowNameEditor({ workflow }: WorkflowNameEditorProps) {
 
   return (
     <button
-      className="truncate rounded font-medium transition hover:bg-muted hover:px-1.5"
+      className="hover:bg-muted truncate rounded font-medium transition hover:px-1.5"
       onClick={handleNameClick}
       title="Rename workflow"
       type="button"

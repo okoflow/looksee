@@ -12,7 +12,7 @@ interface HintProps {
 function Hint({ hint }: HintProps) {
   return (
     <Tooltip>
-      <TooltipTrigger aria-label="More details" className="text-muted-foreground transition hover:text-foreground">
+      <TooltipTrigger aria-label="More details" className="text-muted-foreground hover:text-foreground transition">
         <InfoIcon className="size-3.5" />
       </TooltipTrigger>
 

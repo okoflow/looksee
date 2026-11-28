@@ -30,9 +30,9 @@ export function SignInPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col items-center gap-2 text-center">
-        <Image alt="LookSee" className="size-10" src={logomark} />
+        <Image alt="Looksee" className="size-10" src={logomark} />
 
-        <h1 className="font-semibold text-xl">Sign in to LookSee</h1>
+        <h1 className="text-xl font-semibold">Sign in to Looksee</h1>
       </div>
 
       <form className="flex flex-col gap-4" onSubmit={handleSubmit}>

@@ -12,7 +12,7 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    app_name: str = "LookSee API"
+    app_name: str = "Looksee API"
 
     license_key: str | None = None
 
@@ -41,6 +41,12 @@ class Settings(BaseSettings):
     reconcile_interval_seconds: float = Field(default=30.0, gt=0.0, allow_inf_nan=False)
 
     snapshots_dir: Path = Path("./data/snapshots")
+
+    # Days to keep each kind of stored evidence; 0 keeps it forever.
+    snapshot_retention_days: int = Field(default=0, ge=0)
+    alert_retention_days: int = Field(default=0, ge=0)
+    delivery_retention_days: int = Field(default=0, ge=0)
+    retention_interval_seconds: float = Field(default=3600.0, gt=0.0, allow_inf_nan=False)
 
     secret_key: str | None = None
     secret_key_file: Path = Path("./data/secret.key")

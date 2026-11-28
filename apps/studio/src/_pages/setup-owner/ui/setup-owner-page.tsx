@@ -42,9 +42,9 @@ export function SetupOwnerPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col items-center gap-2 text-center">
-        <Image alt="LookSee" className="size-10" src={logomark} />
+        <Image alt="Looksee" className="size-10" src={logomark} />
 
-        <h1 className="font-semibold text-xl">Set up LookSee</h1>
+        <h1 className="text-xl font-semibold">Set up Looksee</h1>
 
         <p className="text-muted-foreground text-sm">
           Create the owner account for this instance. Until it exists, anyone who can reach this page can claim

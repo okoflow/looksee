@@ -1,12 +1,12 @@
 import { z } from "zod";
 
-const TRAILING_SLASHES = /\/+$/;
+const TRAILING_SLASHES = /\/+$/u;
 
-const httpUrlSchema = z.url({ protocol: /^https?$/ }).transform((value) => {
+const httpUrlSchema = z.url({ protocol: /^https?$/u }).transform((value) => {
   return value.replace(TRAILING_SLASHES, "");
 });
 
-const webSocketUrlSchema = z.url({ protocol: /^wss?$/ }).transform((value) => {
+const webSocketUrlSchema = z.url({ protocol: /^wss?$/u }).transform((value) => {
   return value.replace(TRAILING_SLASHES, "");
 });
 

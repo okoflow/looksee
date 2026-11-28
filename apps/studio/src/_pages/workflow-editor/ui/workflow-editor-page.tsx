@@ -25,7 +25,7 @@ export function WorkflowEditorPage({ id }: WorkflowEditorPageProps) {
   if (workflow.isError) {
     return (
       <div className="flex flex-col items-start gap-3 p-6">
-        <p className="font-medium text-sm">Failed to load the workflow.</p>
+        <p className="text-sm font-medium">Failed to load the workflow.</p>
 
         <p className="text-muted-foreground text-sm">{workflow.error.message}</p>
 

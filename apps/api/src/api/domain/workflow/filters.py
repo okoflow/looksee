@@ -36,16 +36,22 @@ class FilterNodeData(WorkflowModel):
         raise NotImplementedError
 
 
-class IfElseFilterData(FilterNodeData):
+class _IfElseFilterFields(FilterNodeData):
     kind: Literal["if_else_filter"] = "if_else_filter"
+
+
+class IfElseFilterData(_IfElseFilterFields):
     condition: IfElseCondition = Field(default_factory=EventKindCondition)
 
     def passes(self, event: DetectionEvent, runtime: FilterRuntime) -> bool:
         return self.condition.matches(event)
 
 
-class ZoneFilterData(FilterNodeData):
+class _ZoneFilterFields(FilterNodeData):
     kind: Literal["zone_filter"] = "zone_filter"
+
+
+class ZoneFilterData(_ZoneFilterFields):
     polygon: list[NormalizedPoint] = Field(default_factory=list, max_length=100)
 
     def passes(self, event: DetectionEvent, runtime: FilterRuntime) -> bool:
@@ -151,11 +157,11 @@ FilterData = (
 RunnablePolygon = Annotated[list[NormalizedPoint], Field(min_length=3, max_length=100)]
 
 
-class RunnableIfElseFilter(IfElseFilterData):
+class RunnableIfElseFilter(_IfElseFilterFields):
     condition: RunnableIfElseCondition
 
 
-class RunnableZoneFilter(ZoneFilterData):
+class RunnableZoneFilter(_ZoneFilterFields):
     polygon: RunnablePolygon
 
 

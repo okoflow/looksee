@@ -29,8 +29,8 @@ export function PaletteItem({ definition, locked }: PaletteItemProps) {
         render={
           <div
             className={cn(
-              "flex items-center gap-2 rounded-md border bg-card p-2 text-card-foreground transition",
-              locked ? "cursor-not-allowed opacity-60" : "cursor-grab hover:border-ring active:cursor-grabbing"
+              "bg-card text-card-foreground flex items-center gap-2 rounded-md border p-2 transition",
+              locked ? "cursor-not-allowed opacity-60" : "hover:border-ring cursor-grab active:cursor-grabbing"
             )}
             draggable={!locked}
             onDragStart={handleDragStart}
@@ -41,15 +41,15 @@ export function PaletteItem({ definition, locked }: PaletteItemProps) {
           <Icon className="size-4" />
         </div>
 
-        <span className="truncate font-medium text-sm">{definition.label}</span>
+        <span className="truncate text-sm font-medium">{definition.label}</span>
 
         {locked ? (
-          <LockIcon aria-label="Requires a license" className="ml-auto size-3.5 shrink-0 text-muted-foreground" />
+          <LockIcon aria-label="Requires a license" className="text-muted-foreground ml-auto size-3.5 shrink-0" />
         ) : null}
       </TooltipTrigger>
 
       <TooltipContent side="right">
-        {locked ? `${definition.description} Requires a LookSee Enterprise license.` : definition.description}
+        {locked ? `${definition.description} Requires a Looksee Enterprise license.` : definition.description}
       </TooltipContent>
     </Tooltip>
   );

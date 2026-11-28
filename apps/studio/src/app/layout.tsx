@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import type { PropsWithChildren } from "react";
-import { AppProviders } from "@/_app/providers";
+import { AppProviders } from "@/_app/entrypoint";
 import "@/_app/styles/globals.css";
 import { EnvironmentScript } from "@/shared/config/index.server";
 import { cn } from "@/shared/lib/cn";
@@ -15,10 +15,10 @@ const geist = localFont({
 });
 
 export const metadata: Metadata = {
-  applicationName: "LookSee",
+  applicationName: "Looksee",
   title: {
-    default: "LookSee",
-    template: "%s · LookSee",
+    default: "Looksee",
+    template: "%s · Looksee",
   },
   description: "Self-hosted video analytics and visual automation workflows.",
 };

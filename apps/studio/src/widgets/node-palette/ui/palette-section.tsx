@@ -15,7 +15,7 @@ function isLocked(definition: NodeDefinition, licensedFeatures: string[]) {
 export function PaletteSection({ category, items, licensedFeatures }: PaletteSectionProps) {
   return (
     <div className="flex flex-col gap-2">
-      <span className="px-1 text-muted-foreground text-xs uppercase tracking-wide">
+      <span className="text-muted-foreground px-1 text-xs tracking-wide uppercase">
         {PALETTE_CATEGORY_LABELS[category]}
       </span>
 

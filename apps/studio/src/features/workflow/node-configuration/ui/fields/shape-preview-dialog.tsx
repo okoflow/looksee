@@ -65,7 +65,7 @@ export function ShapePreviewDialog({
               src={assetContentUrl(upstreamSource.url)}
             />
           ) : (
-            <span className="absolute inset-0 flex items-center justify-center px-8 text-center text-muted-foreground text-sm">
+            <span className="text-muted-foreground absolute inset-0 flex items-center justify-center px-8 text-center text-sm">
               No file preview for this camera — draw on the frame; the Monitor page shows it over the live stream.
             </span>
           )}
@@ -92,7 +92,7 @@ export function ShapePreviewDialog({
             Clear
           </Button>
 
-          <span className="ml-auto text-muted-foreground text-xs">{pointsLabel}</span>
+          <span className="text-muted-foreground ml-auto text-xs">{pointsLabel}</span>
 
           <Button onClick={handleDone} size="sm">
             Done

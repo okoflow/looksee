@@ -4,8 +4,11 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+import numpy as np
+
 if TYPE_CHECKING:
-    import numpy as np
+    from collections.abc import Mapping
+
     import onnxruntime as ort
     import supervision as sv
 
@@ -81,6 +84,15 @@ class OnnxDetectionAdapter(ABC):
     @abstractmethod
     def detect(self, frame: np.ndarray) -> sv.Detections:
         raise NotImplementedError
+
+    def _run(self, output_names: list[str], feeds: Mapping[str, np.ndarray]) -> list[np.ndarray]:
+        """Run the session; detection outputs are always dense tensors."""
+        outputs = self._session.run(output_names, dict(feeds))
+        dense = [output for output in outputs if isinstance(output, np.ndarray)]
+        if len(dense) != len(outputs):
+            raise UnsupportedModelError("ONNX model returned a non-dense output tensor")
+
+        return dense
 
 
 def tensor_matches(

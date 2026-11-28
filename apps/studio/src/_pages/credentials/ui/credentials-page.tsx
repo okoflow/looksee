@@ -12,7 +12,7 @@ import { CredentialRow } from "./credential-row";
 function MessageRow({ children }: PropsWithChildren) {
   return (
     <TableRow>
-      <TableCell className="py-8 text-center text-muted-foreground" colSpan={4}>
+      <TableCell className="text-muted-foreground py-8 text-center" colSpan={4}>
         {children}
       </TableCell>
     </TableRow>
@@ -51,7 +51,7 @@ export function CredentialsPage() {
       <header className="flex h-12 shrink-0 items-center gap-2 border-b px-3">
         <SidebarTrigger className="-ml-1" />
 
-        <h1 className="font-medium text-sm">Credentials</h1>
+        <h1 className="text-sm font-medium">Credentials</h1>
 
         <div className="ml-auto">
           <Button

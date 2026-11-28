@@ -13,12 +13,12 @@ from api.domain.errors import GraphErrorCode, WorkflowGraphError
 from api.domain.graph import WorkflowGraphIndex
 from api.domain.models import ModelDescriptor
 from api.domain.workflow import (
-    LICENSED_FEATURES_BY_KIND,
     ClassFilterData,
     DetectData,
     IfElseFilterData,
     ensure_node_runnable,
 )
+from api.domain.workflow.extensions import licensed_feature_of
 
 
 class ModelCatalogReader(Protocol):
@@ -59,7 +59,7 @@ def validate_runnable_graph(
 def _validate_features_licensed(index: WorkflowGraphIndex, entitlements: Entitlements) -> None:
     """Every commercial node type in the graph must be covered by the license."""
     for node_id in sorted(index.nodes_by_id):
-        feature = LICENSED_FEATURES_BY_KIND.get(index.nodes_by_id[node_id].kind)
+        feature = licensed_feature_of(index.nodes_by_id[node_id])
         if feature is None:
             continue
 

@@ -102,10 +102,7 @@ async def apply_worker_event(
     if decision.status in (CameraStatus.ACTIVE, CameraStatus.DISABLED):
         runtime_state.clear_worker_retry(event.camera_id)
 
-    status_changed = (
-        camera is not None and decision.status is not None and camera.status != decision.status
-    )
-    if status_changed:
+    if camera is not None and decision.status is not None and camera.status != decision.status:
         camera.status = decision.status
         await session.commit()
     else:

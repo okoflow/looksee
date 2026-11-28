@@ -8,6 +8,7 @@ from api.adapters.persistence.accounts import SqlAlchemyAccounts
 from api.adapters.persistence.deliveries import PostgresDeliveryQueue
 from api.adapters.persistence.models import Delivery, User
 from api.adapters.redis.rate_limits import RedisRateLimiter
+from api.application.auth import Account
 from api.application.deliveries import DeliveryRequest
 from api.application.errors import ResourceConflictError
 from api.domain.workflow import WebhookActionData
@@ -27,7 +28,7 @@ async def test_concurrent_setup_creates_exactly_one_owner(postgres_sessions):
         return_exceptions=True,
     )
 
-    assert sum(isinstance(result, User) for result in results) == 1
+    assert sum(isinstance(result, Account) for result in results) == 1
     assert sum(isinstance(result, ResourceConflictError) for result in results) == 7
     async with postgres_sessions() as session:
         assert await session.scalar(select(func.count()).select_from(User)) == 1

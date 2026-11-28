@@ -77,7 +77,7 @@ function CanvasInner() {
         <ZoomControls />
 
         <Panel
-          className="mb-editor-gutter ml-[calc(var(--spacing-editor-palette)_+_var(--spacing-editor-gutter)*2)] flex items-center rounded-md border bg-card p-1 shadow-xs"
+          className="mb-editor-gutter bg-card ml-[calc(var(--spacing-editor-palette)_+_var(--spacing-editor-gutter)*2)] flex items-center rounded-md border p-1 shadow-xs"
           position="bottom-left"
         >
           <Button onClick={handleAutoLayout} size="sm" variant="ghost">

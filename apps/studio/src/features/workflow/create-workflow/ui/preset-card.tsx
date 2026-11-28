@@ -12,14 +12,14 @@ interface PresetCardProps {
 export function PresetCard({ description, icon, onClick, title, vertical }: PresetCardProps) {
   return (
     <button
-      className="flex flex-col gap-1 rounded-md border bg-card p-3 text-left transition hover:border-ring"
+      className="bg-card hover:border-ring flex flex-col gap-1 rounded-md border p-3 text-left transition"
       onClick={onClick}
       type="button"
     >
       <span className="flex w-full items-center gap-2">
         <span className="text-muted-foreground">{icon}</span>
 
-        <span className="font-medium text-sm">{title}</span>
+        <span className="text-sm font-medium">{title}</span>
 
         {vertical ? (
           <Badge className="ml-auto" variant="secondary">

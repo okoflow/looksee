@@ -13,9 +13,8 @@ if TYPE_CHECKING:
     from api.domain.events import DetectionEvent
 
 
-class DetectData(WorkflowModel):
+class _DetectFields(WorkflowModel):
     kind: Literal["detect"] = "detect"
-    model_id: ModelId | None = None
     event_kinds: list[EventKind] = Field(default_factory=list, max_length=64)
     confidence_threshold: float = Field(default=0.5, ge=0.0, le=1.0)
     inference_fps: int = Field(default=1, ge=1, le=15)
@@ -24,5 +23,9 @@ class DetectData(WorkflowModel):
         return not self.event_kinds or event.kind in self.event_kinds
 
 
-class RunnableDetectData(DetectData):
+class DetectData(_DetectFields):
+    model_id: ModelId | None = None
+
+
+class RunnableDetectData(_DetectFields):
     model_id: ModelId

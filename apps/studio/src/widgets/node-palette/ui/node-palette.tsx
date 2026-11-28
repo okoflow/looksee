@@ -35,8 +35,8 @@ export function NodePalette() {
   };
 
   return (
-    <aside className="flex h-full w-editor-palette shrink-0 flex-col overflow-hidden rounded-xl border bg-card">
-      <div className="flex h-12 items-center border-b px-4 font-medium text-sm">Nodes</div>
+    <aside className="w-editor-palette bg-card flex h-full shrink-0 flex-col overflow-hidden rounded-xl border">
+      <div className="flex h-12 items-center border-b px-4 text-sm font-medium">Nodes</div>
 
       <div className="border-b p-3">
         <InputGroup>
@@ -68,7 +68,7 @@ export function NodePalette() {
             })}
           </div>
         ) : (
-          <div className="p-6 text-center text-muted-foreground text-sm">No matching nodes.</div>
+          <div className="text-muted-foreground p-6 text-center text-sm">No matching nodes.</div>
         )}
       </ScrollArea>
     </aside>

@@ -2,22 +2,27 @@
 
 from functools import reduce
 from operator import or_
-from typing import Annotated, Literal
+from typing import TYPE_CHECKING, Annotated, Literal
 
 from pydantic import Field
 
-from api.domain.workflow.actions import ActionData
+from api.domain.workflow.actions import ActionData, ActionNodeData
 from api.domain.workflow.base import WorkflowModel
 from api.domain.workflow.detect import DetectData
 from api.domain.workflow.extensions import NODE_EXTENSIONS
-from api.domain.workflow.filters import FilterData
+from api.domain.workflow.filters import FilterData, FilterNodeData
 from api.domain.workflow.sources import CameraSourceData
 
-NodeDataUnion = reduce(
-    or_,
-    (extension.draft for extension in NODE_EXTENSIONS),
-    CameraSourceData | DetectData | FilterData | ActionData,
-)
+if TYPE_CHECKING:
+    # Commercial drafts join the union at import time, so the checker sees the
+    # bases every extension subclasses instead of the concrete members.
+    NodeDataUnion = CameraSourceData | DetectData | FilterNodeData | ActionNodeData
+else:
+    NodeDataUnion = reduce(
+        or_,
+        (extension.draft for extension in NODE_EXTENSIONS),
+        CameraSourceData | DetectData | FilterData | ActionData,
+    )
 NodeData = Annotated[NodeDataUnion, Field(discriminator="kind")]
 
 
