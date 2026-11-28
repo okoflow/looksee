@@ -66,9 +66,11 @@ class DfineRawAdapter(OnnxDetectionAdapter):
 
     def detect(self, frame: np.ndarray) -> sv.Detections:
         frame_height, frame_width = frame.shape[:2]
-        resized = cv2.resize(frame, (self._input_size, self._input_size))
+        resized = np.asarray(
+            cv2.resize(frame, (self._input_size, self._input_size)), dtype=np.uint8
+        )
 
-        logits, boxes = self._session.run(
+        logits, boxes = self._run(
             ["logits", "pred_boxes"],
             {self._input_name: to_chw_tensor(resized)},
         )

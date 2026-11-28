@@ -70,7 +70,7 @@ class DfineDeployAdapter(OnnxDetectionAdapter):
         frame_height, frame_width = frame.shape[:2]
         canvas, transform = letterbox(frame, self._input_size)
 
-        labels, boxes, scores = self._session.run(
+        labels, boxes, scores = self._run(
             ["labels", "boxes", "scores"],
             {
                 "images": to_chw_tensor(canvas),
