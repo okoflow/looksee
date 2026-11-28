@@ -2,9 +2,9 @@
 
 from fastapi import APIRouter, Depends, Response, status
 
-from api.adapters.persistence.models import User
 from api.adapters.security import SESSION_TTL, issue_session_token
 from api.application import auth
+from api.application.auth import Account
 from api.config import settings
 from api.entrypoints.http.dependencies import (
     SESSION_COOKIE,
@@ -23,7 +23,7 @@ from api.entrypoints.http.schemas.auth import (
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-def _attach_session(response: Response, user: User) -> None:
+def _attach_session(response: Response, user: Account) -> None:
     response.set_cookie(
         SESSION_COOKIE,
         issue_session_token(user.id),
@@ -51,7 +51,7 @@ async def setup_owner(
     accounts: AccountsDep,
     passwords: PasswordsDep,
     response: Response,
-) -> User:
+) -> Account:
     owner = await auth.create_owner(
         accounts,
         passwords,
@@ -67,7 +67,7 @@ async def setup_owner(
 @router.post("/login", response_model=UserRead, dependencies=[Depends(require_auth_capacity)])
 async def login(
     payload: LoginRequest, accounts: AccountsDep, passwords: PasswordsDep, response: Response
-) -> User:
+) -> Account:
     user = await auth.authenticate(
         accounts, passwords, email=payload.email, password=payload.password
     )
@@ -82,5 +82,5 @@ async def logout(response: Response) -> None:
 
 
 @router.get("/me", response_model=UserRead)
-async def me(user: CurrentUserDep) -> User:
+async def me(user: CurrentUserDep) -> Account:
     return user

@@ -12,12 +12,11 @@ from api.adapters.persistence.accounts import SqlAlchemyAccounts
 from api.adapters.persistence.db import get_session, session_factory
 from api.adapters.persistence.deliveries import PostgresDeliveryQueue
 from api.adapters.persistence.media import SqlAlchemyMediaRepository
-from api.adapters.persistence.models import User
 from api.adapters.redis.rate_limits import RedisRateLimiter
 from api.adapters.security import decode_session_token
 from api.adapters.security.media import JwtMediaTokens
 from api.adapters.security.passwords import Argon2Passwords
-from api.application.auth import AccountRepository, Passwords, get_user
+from api.application.auth import Account, AccountRepository, Passwords, get_user
 from api.application.deliveries import DeliveryHistory
 from api.application.entitlements import Entitlements, resolve_entitlements
 from api.application.media import MediaAccess
@@ -91,7 +90,7 @@ def get_media_access(session: SessionDep) -> MediaAccess:
     )
 
 
-async def get_current_user(request: Request, accounts: AccountsDep) -> User:
+async def get_current_user(request: Request, accounts: AccountsDep) -> Account:
     token = request.cookies.get(SESSION_COOKIE)
     user_id = decode_session_token(token) if token is not None else None
     user = await get_user(accounts, user_id) if user_id is not None else None
@@ -107,5 +106,5 @@ async def get_current_user(request: Request, accounts: AccountsDep) -> User:
 
 ModelCatalogDep = Annotated[ModelCatalog, Depends(get_model_catalog)]
 EntitlementsDep = Annotated[Entitlements, Depends(get_entitlements)]
-CurrentUserDep = Annotated[User, Depends(get_current_user)]
+CurrentUserDep = Annotated[Account, Depends(get_current_user)]
 MediaAccessDep = Annotated[MediaAccess, Depends(get_media_access)]
