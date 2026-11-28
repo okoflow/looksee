@@ -2,7 +2,7 @@ import ky, { type BeforeErrorState, isHTTPError, type KyInstance } from "ky";
 import { z } from "zod";
 import { getApiUrl } from "@/shared/config";
 
-const VALUE_ERROR_PREFIX = /^Value error, /;
+const VALUE_ERROR_PREFIX = /^Value error, /u;
 
 const apiErrorSchema = z.object({
   detail: z

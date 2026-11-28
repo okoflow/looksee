@@ -103,7 +103,7 @@ export function AppSidebar() {
               <span>GitHub</span>
 
               {typeof stars.data === "number" ? (
-                <span className="ml-auto flex items-center gap-1 text-muted-foreground text-xs">
+                <span className="text-muted-foreground ml-auto flex items-center gap-1 text-xs">
                   <StarIcon className="size-3" />
 
                   {formatStars(stars.data)}
@@ -115,7 +115,7 @@ export function AppSidebar() {
           {session.data ? (
             <SidebarMenuItem>
               <SidebarMenuButton className="pointer-events-none" tooltip={session.data.email}>
-                <span className="flex size-4 shrink-0 items-center justify-center rounded-full bg-primary/15 font-medium text-[10px] text-primary uppercase">
+                <span className="bg-primary/15 text-primary flex size-4 shrink-0 items-center justify-center rounded-full text-[10px] font-medium uppercase">
                   {session.data.name.charAt(0)}
                 </span>
 

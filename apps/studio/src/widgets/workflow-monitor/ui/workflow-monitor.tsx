@@ -45,8 +45,8 @@ export function WorkflowMonitor({ workflow }: WorkflowMonitorProps) {
 
   if (selectedCamera === null) {
     return (
-      <div className="flex min-h-0 flex-1 p-editor-gutter">
-        <div className="flex flex-1 flex-col items-center justify-center gap-2 rounded-xl border bg-card text-muted-foreground text-sm">
+      <div className="p-editor-gutter flex min-h-0 flex-1">
+        <div className="bg-card text-muted-foreground flex flex-1 flex-col items-center justify-center gap-2 rounded-xl border text-sm">
           <VideoOffIcon />
           Add a camera node in the editor to monitor this workflow.
         </div>
@@ -75,8 +75,8 @@ export function WorkflowMonitor({ workflow }: WorkflowMonitorProps) {
   const cameraShapes = getCameraShapes(workflow.graph, selectedCamera.node_id);
 
   return (
-    <div className="flex min-h-0 flex-1 gap-editor-gutter p-editor-gutter">
-      <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-xl border bg-card">
+    <div className="gap-editor-gutter p-editor-gutter flex min-h-0 flex-1">
+      <div className="bg-card flex min-w-0 flex-1 flex-col overflow-hidden rounded-xl border">
         <div className="flex h-12 shrink-0 items-center gap-2 border-b px-3">
           {workflow.cameras.length > 1 ? (
             <Select items={cameraItems} onValueChange={handleCameraChange} value={selectedCamera.node_id}>
@@ -97,7 +97,7 @@ export function WorkflowMonitor({ workflow }: WorkflowMonitorProps) {
               </SelectContent>
             </Select>
           ) : (
-            <span className="font-medium text-sm">{selectedCamera.name}</span>
+            <span className="text-sm font-medium">{selectedCamera.name}</span>
           )}
 
           <Badge variant={selectedCamera.status === "active" ? "secondary" : "outline"}>
@@ -136,7 +136,7 @@ export function WorkflowMonitor({ workflow }: WorkflowMonitorProps) {
       </div>
 
       <Tabs
-        className="flex w-96 shrink-0 flex-col gap-0 overflow-hidden rounded-xl border bg-card"
+        className="bg-card flex w-96 shrink-0 flex-col gap-0 overflow-hidden rounded-xl border"
         onValueChange={handleTabChange}
         value={activeTab}
       >

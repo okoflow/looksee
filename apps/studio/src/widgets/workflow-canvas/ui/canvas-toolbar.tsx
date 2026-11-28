@@ -55,7 +55,7 @@ export function CanvasToolbar() {
 
   return (
     <Panel
-      className="mb-editor-gutter flex items-center gap-1 rounded-md border bg-card p-1 shadow-xs"
+      className="mb-editor-gutter bg-card flex items-center gap-1 rounded-md border p-1 shadow-xs"
       position="bottom-center"
     >
       <ToggleGroup onValueChange={handleToolChange} size="sm" value={[activeTool]}>

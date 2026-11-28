@@ -11,7 +11,7 @@ interface NodeInspectorHeaderProps {
 export function NodeInspectorHeader({ description, label, onDelete }: NodeInspectorHeaderProps) {
   return (
     <div className="flex h-12 items-center gap-1.5 border-b px-4">
-      <span className="font-medium text-sm">{label}</span>
+      <span className="text-sm font-medium">{label}</span>
 
       <Hint hint={description} />
 

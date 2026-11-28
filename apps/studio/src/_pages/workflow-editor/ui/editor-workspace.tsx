@@ -9,11 +9,11 @@ export function WorkflowEditorWorkspace() {
     <div className="relative min-h-0 flex-1">
       <WorkflowCanvas />
 
-      <div className="absolute inset-y-editor-gutter left-editor-gutter z-10">
+      <div className="inset-y-editor-gutter left-editor-gutter absolute z-10">
         <NodePalette />
       </div>
 
-      <div className="absolute inset-y-editor-gutter right-editor-gutter z-10">
+      <div className="inset-y-editor-gutter right-editor-gutter absolute z-10">
         <NodeInspector />
       </div>
     </div>

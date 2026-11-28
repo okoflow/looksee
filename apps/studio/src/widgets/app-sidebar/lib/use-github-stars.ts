@@ -4,12 +4,12 @@ import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 
 const GITHUB_STARS_STALE_TIME_MS = 3_600_000;
-const TRAILING_ZERO = /\.0$/;
+const TRAILING_ZERO = /\.0$/u;
 
 const repositorySchema = z.object({ stargazers_count: z.number().int().nonnegative() });
 
 function repositorySlug(githubUrl: string): string | null {
-  const slug = new URL(githubUrl).pathname.replace(/^\/+|\/+$/g, "");
+  const slug = new URL(githubUrl).pathname.replace(/^\/+|\/+$/gu, "");
 
   return slug.split("/").length === 2 ? slug : null;
 }

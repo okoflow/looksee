@@ -17,7 +17,7 @@ export function WorkflowPageHeader({ children, workflow }: PropsWithChildren<Wor
       <SidebarTrigger className="-ml-1" />
 
       <nav className="flex min-w-0 items-center gap-1.5 text-sm">
-        <Link className="text-muted-foreground transition hover:text-foreground" href="/">
+        <Link className="text-muted-foreground hover:text-foreground transition" href="/">
           Workflows
         </Link>
 

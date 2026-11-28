@@ -41,8 +41,8 @@ export function BoundingBoxOverlay({ videoRef, frame }: BoundingBoxOverlayProps)
         const key = detection.tracker_id === null ? `${detection.label}-${index}` : `track-${detection.tracker_id}`;
 
         return (
-          <div className="absolute border-2 border-detection" key={key} style={{ left, top, width, height }}>
-            <span className="absolute -top-5 left-0 whitespace-nowrap rounded-t-sm bg-detection px-1 text-white text-xs">
+          <div className="border-detection absolute border-2" key={key} style={{ left, top, width, height }}>
+            <span className="bg-detection absolute -top-5 left-0 rounded-t-sm px-1 text-xs whitespace-nowrap text-white">
               {label}
             </span>
           </div>

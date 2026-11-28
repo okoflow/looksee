@@ -7,7 +7,7 @@ import {
   runtimeEnvironmentDefaults,
 } from "./environment";
 
-const TRAILING_SLASHES = /\/+$/;
+const TRAILING_SLASHES = /\/+$/u;
 
 const environmentVariableSchema = z
   .string()
