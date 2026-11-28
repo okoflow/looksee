@@ -12,6 +12,7 @@ from api.adapters.persistence.db import engine
 from api.adapters.redis.broker import broker
 from api.adapters.redis.frame_store import close_frame_store
 from api.application.reconcile import reconcile_once, run_reconcile_loop
+from api.application.retention import run_retention_loop
 from api.bootstrap import build_runtime, session_user_exists
 from api.config import settings
 from api.entrypoints.http.dependencies import close_rate_limiter
@@ -42,9 +43,16 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         name="camera-reconcile",
     )
     delivery_task = asyncio.create_task(app.state.runtime.deliveries.run(), name="deliveries")
+    retention_task = asyncio.create_task(
+        run_retention_loop(settings.retention_interval_seconds, app.state.runtime.retention),
+        name="retention",
+    )
     try:
         yield
     finally:
+        retention_task.cancel()
+        with suppress(asyncio.CancelledError):
+            await retention_task
         delivery_task.cancel()
         with suppress(asyncio.CancelledError):
             await delivery_task
