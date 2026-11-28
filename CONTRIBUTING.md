@@ -26,7 +26,7 @@ Each Python package and Studio has a README that explains its internal layout an
 
 ## Development setup
 
-Prerequisites: [uv](https://docs.astral.sh/uv/), Python 3.12, Node.js 24, [pnpm](https://pnpm.io/) 11, Docker with Compose 2.24 or later.
+Prerequisites: [uv](https://docs.astral.sh/uv/), Python 3.12, Node.js 26, [pnpm](https://pnpm.io/) 12, Docker with Compose 2.24 or later.
 
 ```bash
 git clone https://github.com/okoflow/looksee.git
