@@ -2,7 +2,8 @@
 
 import { CircleCheckIcon, InfoIcon, Loader2Icon, OctagonXIcon, TriangleAlertIcon } from "lucide-react";
 import type { CSSProperties } from "react";
-import { Toaster as Sonner, type ToasterProps } from "sonner";
+import type { ToasterProps } from "sonner";
+import { Toaster as Sonner } from "sonner";
 
 const toasterIcons = {
   success: <CircleCheckIcon className="size-4 text-emerald-600" />,

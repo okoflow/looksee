@@ -1,7 +1,8 @@
 "use client";
 
 import type { KeyboardEvent, MouseEvent } from "react";
-import { type NormalizedPoint, type NormalizedPolygon, pointerToNormalizedPoint } from "./normalized-point";
+import type { NormalizedPoint, NormalizedPolygon } from "./normalized-point";
+import { pointerToNormalizedPoint } from "./normalized-point";
 
 type EditingKey = "Backspace" | "Escape";
 

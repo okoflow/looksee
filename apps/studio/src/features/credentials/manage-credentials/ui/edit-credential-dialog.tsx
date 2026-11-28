@@ -1,13 +1,15 @@
 "use client";
 
-import { type FormEventHandler, useState } from "react";
+import type { FormEventHandler } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/shared/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
 import { Field, FieldDescription, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
 import { Switch } from "@/shared/ui/switch";
-import { type Credential, useUpdateCredential } from "@/entities/credential";
+import type { Credential } from "@/entities/credential";
+import { useUpdateCredential } from "@/entities/credential";
 import { buildPayload, emptyPayloadDraft } from "../config/payload-fields";
 import { PayloadFields } from "./payload-fields";
 

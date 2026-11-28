@@ -13,7 +13,8 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
 import { TableCell, TableRow } from "@/shared/ui/table";
-import { CREDENTIAL_TYPE_LABELS, type Credential } from "@/entities/credential";
+import type { Credential } from "@/entities/credential";
+import { CREDENTIAL_TYPE_LABELS } from "@/entities/credential";
 import { DeleteCredentialDialog, EditCredentialDialog } from "@/features/credentials/manage-credentials";
 
 interface CredentialRowProps {

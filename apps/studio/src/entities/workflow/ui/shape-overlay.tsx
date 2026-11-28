@@ -1,5 +1,6 @@
 import { cn } from "@/shared/lib/cn";
-import { type NormalizedPolygon, polygonToSvgPoints } from "@/shared/lib/geometry";
+import type { NormalizedPolygon } from "@/shared/lib/geometry";
+import { polygonToSvgPoints } from "@/shared/lib/geometry";
 
 interface ShapeOverlayProps {
   className?: string;

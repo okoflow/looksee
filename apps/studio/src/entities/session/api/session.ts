@@ -1,12 +1,7 @@
 import { isHTTPError } from "ky";
 import { api } from "@/shared/api";
-import {
-  authStatusSchema,
-  type LoginInput,
-  type SessionUser,
-  type SetupInput,
-  sessionUserSchema,
-} from "../model/schema";
+import type { LoginInput, SessionUser, SetupInput } from "../model/schema";
+import { authStatusSchema, sessionUserSchema } from "../model/schema";
 
 export async function getAuthStatus() {
   const payload: unknown = await api.get("auth/status").json();

@@ -1,4 +1,5 @@
-import { NODE_POLICIES, type OutputPort, type OutputPortId } from "./node-policies";
+import type { OutputPort, OutputPortId } from "./node-policies";
+import { NODE_POLICIES } from "./node-policies";
 import { NODE_ROLES } from "./node-roles";
 import type { NodeKind } from "./schema";
 

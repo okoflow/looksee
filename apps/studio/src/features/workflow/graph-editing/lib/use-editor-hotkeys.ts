@@ -3,7 +3,8 @@
 import { useSetAtom } from "jotai";
 import { useEffect } from "react";
 import { redoAtom, undoAtom } from "../model/editor-atoms";
-import { activeToolAtom, type EditorTool } from "../model/tool-atoms";
+import type { EditorTool } from "../model/tool-atoms";
+import { activeToolAtom } from "../model/tool-atoms";
 
 const TOOL_HOTKEYS: Record<string, EditorTool> = {
   v: "select",

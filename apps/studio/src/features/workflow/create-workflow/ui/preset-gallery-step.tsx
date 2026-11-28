@@ -2,7 +2,8 @@
 
 import { PencilIcon } from "lucide-react";
 import { DialogDescription, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
-import { WORKFLOW_PRESETS, type WorkflowPreset } from "../config/presets";
+import type { WorkflowPreset } from "../config/presets";
+import { WORKFLOW_PRESETS } from "../config/presets";
 import { PresetCard } from "./preset-card";
 
 interface PresetGalleryStepProps {

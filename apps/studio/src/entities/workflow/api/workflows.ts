@@ -1,12 +1,6 @@
 import { api, uuidSchema } from "@/shared/api";
-import {
-  type WorkflowCreate,
-  type WorkflowUpdate,
-  workflowCreateSchema,
-  workflowSchema,
-  workflowsSchema,
-  workflowUpdateSchema,
-} from "../model/schema";
+import type { WorkflowCreate, WorkflowUpdate } from "../model/schema";
+import { workflowCreateSchema, workflowSchema, workflowsSchema, workflowUpdateSchema } from "../model/schema";
 
 export const workflows = {
   list: async () => {

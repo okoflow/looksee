@@ -2,7 +2,8 @@
 
 import { ExpandIcon, Redo2Icon, Trash2Icon } from "lucide-react";
 import { useState } from "react";
-import { type NormalizedPolygon, usePointsEditor } from "@/shared/lib/geometry";
+import type { NormalizedPolygon } from "@/shared/lib/geometry";
+import { usePointsEditor } from "@/shared/lib/geometry";
 import { Button } from "@/shared/ui/button";
 import type { CameraSourceNodeData } from "@/entities/workflow";
 import { ShapeEditorSurface } from "./shape-editor-surface";

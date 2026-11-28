@@ -7,7 +7,8 @@ import { assertNever } from "@/shared/lib/assert-never";
 import { alertQueryKeys } from "@/entities/alert";
 import { workflowQueryKeys } from "@/entities/workflow";
 import { cameraSocketUrl, openReconnectingSocket } from "../api/socket";
-import { type DetectionFrame, parseSocketMessage } from "./messages";
+import type { DetectionFrame } from "./messages";
+import { parseSocketMessage } from "./messages";
 
 const DETECTION_TTL_MS = 3000;
 const FEED_LIMIT = 30;

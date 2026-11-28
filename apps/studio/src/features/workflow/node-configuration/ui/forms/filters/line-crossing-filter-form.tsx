@@ -4,7 +4,8 @@ import type { NormalizedPolygon } from "@/shared/lib/geometry";
 import { Field } from "@/shared/ui/field";
 import { HintedFieldLabel } from "@/shared/ui/hint";
 import { PointsPad } from "../../fields/points-pad";
-import { SelectField, type SelectOption } from "../../fields/select-field";
+import type { SelectOption } from "../../fields/select-field";
+import { SelectField } from "../../fields/select-field";
 import type { NodeFormProps } from "../../form-props";
 
 type CrossingDirection = NodeFormProps<"line_crossing_filter">["data"]["direction"];

@@ -3,15 +3,11 @@
 import type { ChangeEventHandler } from "react";
 import { Field, FieldDescription, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
-import {
-  SOURCE_TYPE_DESCRIPTIONS,
-  SOURCE_TYPE_LABELS,
-  type SourceType,
-  sourceTypeSchema,
-  TEXT_LIMITS,
-} from "@/entities/workflow";
+import type { SourceType } from "@/entities/workflow";
+import { SOURCE_TYPE_DESCRIPTIONS, SOURCE_TYPE_LABELS, sourceTypeSchema, TEXT_LIMITS } from "@/entities/workflow";
 import { AssetPickerField } from "../../fields/asset-picker-field";
-import { SelectField, type SelectOption } from "../../fields/select-field";
+import type { SelectOption } from "../../fields/select-field";
+import { SelectField } from "../../fields/select-field";
 import type { NodeFormProps } from "../../form-props";
 
 const URL_PLACEHOLDERS: Record<SourceType, string> = {

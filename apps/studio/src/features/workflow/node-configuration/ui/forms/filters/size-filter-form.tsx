@@ -1,6 +1,7 @@
 "use client";
 
-import { AREA_FRACTION_LIMITS, type NumericLimits } from "@/entities/workflow";
+import type { NumericLimits } from "@/entities/workflow";
+import { AREA_FRACTION_LIMITS } from "@/entities/workflow";
 import { BoundedNumberField } from "../../fields/bounded-number-field";
 import type { NodeFormProps } from "../../form-props";
 

@@ -8,11 +8,11 @@ import { Button } from "@/shared/ui/button";
 import { Separator } from "@/shared/ui/separator";
 import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
+import type { EditorTool } from "@/features/workflow/graph-editing";
 import {
   activeToolAtom,
   canRedoAtom,
   canUndoAtom,
-  type EditorTool,
   isEditorTool,
   redoAtom,
   undoAtom,

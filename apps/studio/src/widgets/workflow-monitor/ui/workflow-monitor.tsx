@@ -7,13 +7,8 @@ import { Button } from "@/shared/ui/button";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { WorkflowAlerts } from "@/entities/alert";
-import {
-  CAMERA_STATUS_LABELS,
-  getCameraShapes,
-  ShapeOverlay,
-  type Workflow,
-  type WorkflowCamera,
-} from "@/entities/workflow";
+import type { Workflow, WorkflowCamera } from "@/entities/workflow";
+import { CAMERA_STATUS_LABELS, getCameraShapes, ShapeOverlay } from "@/entities/workflow";
 import { CameraStream, LiveEventFeed, useCameraChannel } from "@/features/camera/live-view";
 import { usePublishStream, WebcamPublishButton } from "@/features/camera/publish-webcam";
 

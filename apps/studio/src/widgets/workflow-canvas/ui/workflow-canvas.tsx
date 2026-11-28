@@ -1,14 +1,7 @@
 "use client";
 
-import {
-  Background,
-  BackgroundVariant,
-  ConnectionLineType,
-  type NodeTypes,
-  Panel,
-  ReactFlow,
-  ReactFlowProvider,
-} from "@xyflow/react";
+import type { NodeTypes } from "@xyflow/react";
+import { Background, BackgroundVariant, ConnectionLineType, Panel, ReactFlow, ReactFlowProvider } from "@xyflow/react";
 import { NetworkIcon } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { COMMENT_TYPE_KEY, NODE_TYPE_KEY, useEditorHotkeys } from "@/features/workflow/graph-editing";

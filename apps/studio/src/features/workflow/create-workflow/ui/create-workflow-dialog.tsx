@@ -9,14 +9,10 @@ import { toast } from "sonner";
 import { workflowRoute } from "@/shared/routes";
 import { Button } from "@/shared/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/shared/ui/dialog";
-import {
-  useCreateWorkflow,
-  useWorkflows,
-  type WorkflowGraph,
-  type WorkflowSetup,
-  workflowSetupSchema,
-} from "@/entities/workflow";
-import { type PresetParams, presetDefaults, type WorkflowPreset } from "../config/presets";
+import type { WorkflowGraph, WorkflowSetup } from "@/entities/workflow";
+import { useCreateWorkflow, useWorkflows, workflowSetupSchema } from "@/entities/workflow";
+import type { PresetParams, WorkflowPreset } from "../config/presets";
+import { presetDefaults } from "../config/presets";
 import { resolvePresetParams } from "../lib/preset-params";
 import { uniqueName } from "../lib/unique-name";
 import { PresetGalleryStep } from "./preset-gallery-step";

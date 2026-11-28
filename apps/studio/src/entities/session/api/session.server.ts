@@ -1,7 +1,8 @@
 import "server-only";
 
 import { readServerApiUrl } from "@/shared/config/index.server";
-import { authStatusSchema, type SessionUser, sessionUserSchema } from "../model/schema";
+import type { SessionUser } from "../model/schema";
+import { authStatusSchema, sessionUserSchema } from "../model/schema";
 
 export async function fetchServerSessionUser(cookieHeader: string): Promise<SessionUser | null> {
   const response = await fetch(`${readServerApiUrl()}/auth/me`, {

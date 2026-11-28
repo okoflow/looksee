@@ -1,13 +1,10 @@
 "use client";
 
-import { type KeyboardEventHandler, type MouseEvent, type PointerEvent, useRef } from "react";
+import type { KeyboardEventHandler, MouseEvent, PointerEvent } from "react";
+import { useRef } from "react";
 import { cn } from "@/shared/lib/cn";
-import {
-  type NormalizedPoint,
-  type NormalizedPolygon,
-  pointerToNormalizedPoint,
-  usePointsEditor,
-} from "@/shared/lib/geometry";
+import type { NormalizedPoint, NormalizedPolygon } from "@/shared/lib/geometry";
+import { pointerToNormalizedPoint, usePointsEditor } from "@/shared/lib/geometry";
 import { ShapeOverlay } from "@/entities/workflow";
 
 interface ShapeEditorSurfaceProps {

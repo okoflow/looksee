@@ -1,18 +1,15 @@
 "use client";
 
-import { type FormEventHandler, useState } from "react";
+import type { FormEventHandler } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/shared/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
 import { Field, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
-import {
-  CREDENTIAL_TYPE_LABELS,
-  type CredentialType,
-  credentialTypeSchema,
-  useCreateCredential,
-} from "@/entities/credential";
+import type { CredentialType } from "@/entities/credential";
+import { CREDENTIAL_TYPE_LABELS, credentialTypeSchema, useCreateCredential } from "@/entities/credential";
 import { buildPayload, emptyPayloadDraft } from "../config/payload-fields";
 import { PayloadFields } from "./payload-fields";
 

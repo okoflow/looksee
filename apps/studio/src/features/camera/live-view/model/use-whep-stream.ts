@@ -1,7 +1,9 @@
 "use client";
 
-import { type RefObject, useEffect, useRef, useState } from "react";
-import { runWhepSession, type WhepSessionState } from "@/shared/lib/webrtc";
+import type { RefObject } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { WhepSessionState } from "@/shared/lib/webrtc";
+import { runWhepSession } from "@/shared/lib/webrtc";
 import { getCameraMediaAuthorization } from "@/entities/camera";
 import { cameraWhepUrl } from "../api/mediamtx";
 

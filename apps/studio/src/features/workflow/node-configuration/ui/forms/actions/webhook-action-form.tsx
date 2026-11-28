@@ -4,7 +4,8 @@ import type { ChangeEventHandler } from "react";
 import { Field, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
 import { TEXT_LIMITS } from "@/entities/workflow";
-import { SelectField, type SelectOption } from "../../fields/select-field";
+import type { SelectOption } from "../../fields/select-field";
+import { SelectField } from "../../fields/select-field";
 import type { NodeFormProps } from "../../form-props";
 
 type WebhookMethod = NodeFormProps<"webhook_action">["data"]["method"];

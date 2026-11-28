@@ -1,11 +1,6 @@
 import { api } from "@/shared/api";
-import {
-  type AlertListParams,
-  type AlertScopeParams,
-  alertListParamsSchema,
-  alertScopeParamsSchema,
-  alertsSchema,
-} from "../model/schema";
+import type { AlertListParams, AlertScopeParams } from "../model/schema";
+import { alertListParamsSchema, alertScopeParamsSchema, alertsSchema } from "../model/schema";
 
 function definedSearchParams(params: AlertListParams): Record<string, string | number> {
   const entries: [string, string | number][] = [];

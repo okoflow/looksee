@@ -20,11 +20,8 @@ import {
   WebhookIcon,
 } from "lucide-react";
 import type { ComponentType, SVGProps } from "react";
-import {
-  ENTERPRISE_INTEGRATIONS_FEATURE,
-  type LicensedFeature,
-  MEASUREMENT_FILTERS_FEATURE,
-} from "@/entities/entitlement";
+import type { LicensedFeature } from "@/entities/entitlement";
+import { ENTERPRISE_INTEGRATIONS_FEATURE, MEASUREMENT_FILTERS_FEATURE } from "@/entities/entitlement";
 import type { NodeData, NodeKind } from "@/entities/workflow";
 import { DEFAULT_CONDITIONS } from "../model/if-else";
 

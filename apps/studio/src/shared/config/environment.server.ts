@@ -1,11 +1,8 @@
 import "server-only";
 
 import { z } from "zod";
-import {
-  type PublicRuntimeEnvironment,
-  publicRuntimeEnvironmentSchema,
-  runtimeEnvironmentDefaults,
-} from "./environment";
+import type { PublicRuntimeEnvironment } from "./environment";
+import { publicRuntimeEnvironmentSchema, runtimeEnvironmentDefaults } from "./environment";
 
 const TRAILING_SLASHES = /\/+$/u;
 

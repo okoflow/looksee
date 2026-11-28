@@ -3,7 +3,8 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { toast } from "sonner";
 import { Button } from "@/shared/ui/button";
-import { useUpdateWorkflow, type Workflow } from "@/entities/workflow";
+import type { Workflow } from "@/entities/workflow";
+import { useUpdateWorkflow } from "@/entities/workflow";
 import { acknowledgeSaveAtom, isDirtyAtom, serializeGraphAtom } from "@/features/workflow/graph-editing";
 import { WorkflowPageHeader } from "@/widgets/workflow-page-header";
 import { RunWorkflowButton } from "./run-workflow-button";

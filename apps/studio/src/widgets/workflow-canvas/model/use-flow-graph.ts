@@ -1,8 +1,11 @@
 "use client";
 
-import { type Connection, type Edge, useReactFlow } from "@xyflow/react";
+import type { Connection, Edge } from "@xyflow/react";
+import { useReactFlow } from "@xyflow/react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { type DragEvent, type MouseEvent as ReactMouseEvent, useEffect } from "react";
+import type { DragEvent, MouseEvent as ReactMouseEvent } from "react";
+import { useEffect } from "react";
+import type { EditorFlowNode } from "@/features/workflow/graph-editing";
 import {
   activeToolAtom,
   addCommentAtom,
@@ -13,7 +16,6 @@ import {
   connectEdgeAtom,
   DROP_OFFSET_X,
   DROP_OFFSET_Y,
-  type EditorFlowNode,
   flowEdgesAtom,
   flowNodesAtom,
   isGraphFlowNode,

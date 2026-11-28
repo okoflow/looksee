@@ -3,7 +3,8 @@
 import type { AlertSeverity } from "@/entities/alert";
 import { ALERT_COOLDOWN_LIMITS } from "@/entities/workflow";
 import { BoundedNumberField } from "../../fields/bounded-number-field";
-import { SelectField, type SelectOption } from "../../fields/select-field";
+import type { SelectOption } from "../../fields/select-field";
+import { SelectField } from "../../fields/select-field";
 import type { NodeFormProps } from "../../form-props";
 
 const ALERT_SEVERITY_OPTIONS: readonly SelectOption<AlertSeverity>[] = [
