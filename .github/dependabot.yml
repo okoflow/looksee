@@ -1,87 +1,127 @@
+# yaml-language-server: $schema=https://www.schemastore.org/dependabot-2.0.json
+
 version: 2
 
 updates:
-  - package-ecosystem: uv
+  - commit-message:
+      prefix: build
+      include: scope
+    cooldown:
+      default-days: 3
+      semver-major-days: 30
+      semver-minor-days: 7
     directory: /
-    schedule:
-      interval: weekly
-    cooldown:
-      default-days: 3
-      semver-major-days: 30
-      semver-minor-days: 7
-      semver-patch-days: 3
     groups:
-      python-minor-patch:
+      uv-minor-patch:
         applies-to: version-updates
         patterns:
           - "*"
         update-types:
           - minor
           - patch
-      python-security:
+      uv-security:
         applies-to: security-updates
         patterns:
           - "*"
-    commit-message:
+    package-ecosystem: uv
+    schedule:
+      interval: weekly
+
+  - commit-message:
       prefix: build
       include: scope
-
-  - package-ecosystem: npm
+    cooldown:
+      default-days: 3
+      semver-major-days: 30
+      semver-minor-days: 7
     directory: /apps/studio
-    schedule:
-      interval: weekly
-    cooldown:
-      default-days: 3
-      semver-major-days: 30
-      semver-minor-days: 7
-      semver-patch-days: 3
     groups:
-      web-minor-patch:
+      npm-minor-patch:
         applies-to: version-updates
         patterns:
           - "*"
         update-types:
           - minor
           - patch
-      web-security:
+      npm-security:
         applies-to: security-updates
         patterns:
           - "*"
-    commit-message:
+    package-ecosystem: npm
+    schedule:
+      interval: weekly
+
+  - commit-message:
       prefix: build
       include: scope
-
-  - package-ecosystem: docker
+    cooldown:
+      default-days: 3
+      semver-major-days: 30
+      semver-minor-days: 7
     directories:
       - /apps/api
       - /apps/inference
       - /apps/studio
-    schedule:
-      interval: weekly
-    cooldown:
-      default-days: 3
-    commit-message:
-      prefix: build
-      include: scope
-
-  - package-ecosystem: docker-compose
-    directory: /
-    schedule:
-      interval: weekly
-    commit-message:
-      prefix: build
-      include: scope
-
-  - package-ecosystem: github-actions
-    directory: /
-    schedule:
-      interval: weekly
-    cooldown:
-      default-days: 3
     groups:
-      actions:
+      docker-minor-patch:
+        applies-to: version-updates
         patterns:
           - "*"
-    commit-message:
+        update-types:
+          - minor
+          - patch
+      docker-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+    package-ecosystem: docker
+    schedule:
+      interval: weekly
+
+  - commit-message:
       prefix: build
       include: scope
+    cooldown:
+      default-days: 3
+      semver-major-days: 30
+      semver-minor-days: 7
+    directory: /
+    groups:
+      compose-minor-patch:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+      compose-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+    package-ecosystem: docker-compose
+    schedule:
+      interval: weekly
+
+  - commit-message:
+      prefix: build
+      include: scope
+    cooldown:
+      default-days: 3
+      semver-major-days: 30
+      semver-minor-days: 7
+    directory: /
+    groups:
+      actions-minor-patch:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+      actions-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+    package-ecosystem: github-actions
+    schedule:
+      interval: weekly
