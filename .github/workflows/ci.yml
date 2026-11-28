@@ -1,3 +1,5 @@
+# yaml-language-server: $schema=https://www.schemastore.org/github-workflow.json
+
 name: CI
 
 on:
@@ -5,47 +7,17 @@ on:
   push:
     branches: [main]
 
-permissions:
-  contents: read
+env:
+  FORCE_COLOR: "1"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
-env:
-  FORCE_COLOR: "1"
-
 jobs:
   python:
     name: Python
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-
-    services:
-      # Primary keys default to uuidv7(), a native function from PostgreSQL 18 on.
-      postgres:
-        image: postgres:18-alpine
-        env:
-          POSTGRES_USER: looksee
-          POSTGRES_PASSWORD: looksee
-          POSTGRES_DB: looksee
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U looksee -d looksee"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-
-      valkey:
-        image: valkey/valkey:9-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "valkey-cli ping"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
 
     env:
       DATABASE_URL: postgresql+asyncpg://looksee:looksee@localhost:5432/looksee
@@ -84,10 +56,37 @@ jobs:
       - name: Migrations match the ORM
         run: uv run --package looksee-api alembic -c apps/api/alembic.ini check
 
+    timeout-minutes: 20
+
+    services:
+      # Primary keys default to uuidv7(), a native function from PostgreSQL 18 on.
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: looksee
+          POSTGRES_PASSWORD: looksee
+          POSTGRES_DB: looksee
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U looksee -d looksee"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+      valkey:
+        image: valkey/valkey:9-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "valkey-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
   studio:
     name: Studio
     runs-on: ubuntu-latest
-    timeout-minutes: 20
     defaults:
       run:
         working-directory: apps/studio
@@ -124,10 +123,11 @@ jobs:
         env:
           NEXT_TELEMETRY_DISABLED: "1"
 
+    timeout-minutes: 20
+
   compose:
     name: Compose
     runs-on: ubuntu-latest
-    timeout-minutes: 5
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -140,3 +140,8 @@ jobs:
           POSTGRES_PASSWORD: ci-config-check
           MTX_MEDIA_PASSWORD: ci-config-check
           STORAGE_PASSWORD: ci-config-check
+
+    timeout-minutes: 5
+
+permissions:
+  contents: read
