@@ -31,7 +31,10 @@ async def _service_unavailable(_request: Request, exc: Exception) -> JSONRespons
     )
 
 
-async def _invalid_request(_request: Request, exc: RequestValidationError) -> JSONResponse:
+async def _invalid_request(_request: Request, exc: Exception) -> JSONResponse:
+    if not isinstance(exc, RequestValidationError):
+        raise TypeError(f"unexpected exception {type(exc).__name__}") from exc
+
     errors = [{key: error[key] for key in ("type", "loc", "msg")} for error in exc.errors()]
 
     return JSONResponse(
