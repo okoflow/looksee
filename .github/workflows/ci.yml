@@ -73,7 +73,6 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
-
       valkey:
         image: valkey/valkey:9-alpine
         ports:
@@ -87,6 +86,7 @@ jobs:
   studio:
     name: Studio
     runs-on: ubuntu-latest
+
     defaults:
       run:
         working-directory: apps/studio
