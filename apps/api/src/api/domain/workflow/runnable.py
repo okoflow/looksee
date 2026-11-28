@@ -38,7 +38,6 @@ from api.domain.workflow.sources import RunnableCameraSourceData
 if TYPE_CHECKING:
     from api.domain.workflow.base import WorkflowModel
 
-if TYPE_CHECKING:
     # Runnable models only validate a draft's dump; nothing reads them statically.
     RunnableNodeDataUnion = WorkflowModel
 else:
