@@ -1,4 +1,9 @@
-"""Action node payloads and their runnable refinements."""
+"""Action node payloads and their runnable refinements.
+
+Each refined node splits into a private fields base plus two siblings: the
+lenient draft that Studio edits and the strict Runnable* check. The siblings
+declare only the fields whose type or constraints differ.
+"""
 
 from typing import Annotated, ClassVar, Literal
 from uuid import UUID
@@ -27,18 +32,24 @@ class ActionNodeData(WorkflowModel):
     credential_type: ClassVar[CredentialType | None] = None
 
 
-class TelegramActionData(ActionNodeData):
+class _TelegramActionFields(ActionNodeData):
     kind: Literal["telegram_action"] = "telegram_action"
     credential_type: ClassVar[CredentialType | None] = "telegram_bot"
-    credential_id: str = Field(default="", max_length=36)
-    chat_id: str = Field(default="", max_length=64)
     message_template: str = Field(default="[{kind}] camera={camera_id} at {ts}", max_length=4096)
 
 
-class WebhookActionData(ActionNodeData):
+class TelegramActionData(_TelegramActionFields):
+    credential_id: str = Field(default="", max_length=36)
+    chat_id: str = Field(default="", max_length=64)
+
+
+class _WebhookActionFields(ActionNodeData):
     kind: Literal["webhook_action"] = "webhook_action"
-    url: str = Field(default="", max_length=2048)
     method: Literal["POST", "GET", "PUT"] = "POST"
+
+
+class WebhookActionData(_WebhookActionFields):
+    url: str = Field(default="", max_length=2048)
 
 
 class LogAlertActionData(ActionNodeData):
@@ -55,11 +66,9 @@ class SnapshotActionData(ActionNodeData):
     annotate: bool = True
 
 
-class EmailActionData(ActionNodeData):
+class _EmailActionFields(ActionNodeData):
     kind: Literal["email_action"] = "email_action"
     credential_type: ClassVar[CredentialType | None] = "smtp"
-    credential_id: str = Field(default="", max_length=36)
-    to: str = Field(default="", max_length=320)
     subject_template: str = Field(default="[{kind}] on camera {camera_id}", max_length=998)
     body_template: str = Field(
         default="{kind} at {ts}\ncamera: {camera_id}\nsnapshot: {snapshot_url}",
@@ -67,21 +76,32 @@ class EmailActionData(ActionNodeData):
     )
 
 
-class MqttActionData(ActionNodeData):
+class EmailActionData(_EmailActionFields):
+    credential_id: str = Field(default="", max_length=36)
+    to: str = Field(default="", max_length=320)
+
+
+class _MqttActionFields(ActionNodeData):
     kind: Literal["mqtt_action"] = "mqtt_action"
     credential_type: ClassVar[CredentialType | None] = "mqtt"
-    credential_id: str = Field(default="", max_length=36)
-    topic: str = Field(default="looksee/events", max_length=512)
     payload_template: str = Field(default="", max_length=8192)
 
 
-class DiscordActionData(ActionNodeData):
-    """Discord webhook message; content is capped by Discord at 2000 characters."""
+class MqttActionData(_MqttActionFields):
+    credential_id: str = Field(default="", max_length=36)
+    topic: str = Field(default="looksee/events", max_length=512)
 
+
+class _DiscordActionFields(ActionNodeData):
     kind: Literal["discord_action"] = "discord_action"
     credential_type: ClassVar[CredentialType | None] = "discord_webhook"
-    credential_id: str = Field(default="", max_length=36)
     message_template: str = Field(default="[{kind}] camera={camera_id} at {ts}", max_length=2000)
+
+
+class DiscordActionData(_DiscordActionFields):
+    """Discord webhook message; content is capped by Discord at 2000 characters."""
+
+    credential_id: str = Field(default="", max_length=36)
 
 
 ActionData = (
@@ -95,24 +115,24 @@ ActionData = (
 )
 
 
-class RunnableTelegramAction(TelegramActionData):
+class RunnableTelegramAction(_TelegramActionFields):
     credential_id: UUID
     chat_id: RequiredChatId
 
 
-class RunnableWebhookAction(WebhookActionData):
+class RunnableWebhookAction(_WebhookActionFields):
     url: HttpUrl
 
 
-class RunnableEmailAction(EmailActionData):
+class RunnableEmailAction(_EmailActionFields):
     credential_id: UUID
     to: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=320)]
 
 
-class RunnableMqttAction(MqttActionData):
+class RunnableMqttAction(_MqttActionFields):
     credential_id: UUID
     topic: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=512)]
 
 
-class RunnableDiscordAction(DiscordActionData):
+class RunnableDiscordAction(_DiscordActionFields):
     credential_id: UUID

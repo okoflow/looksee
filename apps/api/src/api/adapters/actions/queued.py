@@ -4,6 +4,7 @@ from pathlib import Path
 from api.adapters.actions.dispatcher import dispatch_action
 from api.application.deliveries import DeliveryJob
 from api.application.errors import DeliveryError
+from api.domain.workflow import ActionNodeData
 
 
 class QueuedDeliverySender:
@@ -27,4 +28,8 @@ class QueuedDeliverySender:
             except FileNotFoundError:
                 raise DeliveryError("snapshot no longer available", retryable=False) from None
 
-        await dispatch_action(request.identity, request.event, request.action, context)
+        action = request.action
+        if not isinstance(action, ActionNodeData):
+            raise DeliveryError("persisted delivery is not an action", retryable=False)
+
+        await dispatch_action(request.identity, request.event, action, context)

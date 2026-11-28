@@ -22,16 +22,19 @@ def _detection_center(event: DetectionEvent, detection: Detection) -> Point:
     return normalized_box_center(detection.bounding_box, event.frame_width, event.frame_height)
 
 
-class LineCrossingFilterData(FilterNodeData):
+class _LineCrossingFilterFields(FilterNodeData):
+    kind: Literal["line_crossing_filter"] = "line_crossing_filter"
+    direction: CrossingDirection = "any"
+
+
+class LineCrossingFilterData(_LineCrossingFilterFields):
     """Pass when a tracked object crosses the line (2 normalized points) this frame.
 
     Direction is relative to the line's drawing order p1→p2: "in" means crossing
     from its left side to its right side, "out" the reverse, "any" either way.
     """
 
-    kind: Literal["line_crossing_filter"] = "line_crossing_filter"
     line: list[NormalizedPoint] = Field(default_factory=list, max_length=2)
-    direction: CrossingDirection = "any"
 
     def passes(self, event: DetectionEvent, runtime: FilterRuntime) -> bool:
         if len(self.line) != 2:
@@ -63,10 +66,13 @@ class LineCrossingFilterData(FilterNodeData):
         return crossed
 
 
-class DwellFilterData(FilterNodeData):
+class _DwellFilterFields(FilterNodeData):
     kind: Literal["dwell_filter"] = "dwell_filter"
-    polygon: list[NormalizedPoint] = Field(default_factory=list, max_length=100)
     min_seconds: int = Field(default=60, ge=1, le=3600)
+
+
+class DwellFilterData(_DwellFilterFields):
+    polygon: list[NormalizedPoint] = Field(default_factory=list, max_length=100)
 
     def passes(self, event: DetectionEvent, runtime: FilterRuntime) -> bool:
         if len(self.polygon) < 3:
@@ -113,9 +119,9 @@ class CountThresholdFilterData(FilterNodeData):
         return matched >= self.count if self.operator == "gte" else matched <= self.count
 
 
-class RunnableLineCrossingFilter(LineCrossingFilterData):
+class RunnableLineCrossingFilter(_LineCrossingFilterFields):
     line: tuple[NormalizedPoint, NormalizedPoint]
 
 
-class RunnableDwellFilter(DwellFilterData):
+class RunnableDwellFilter(_DwellFilterFields):
     polygon: RunnablePolygon

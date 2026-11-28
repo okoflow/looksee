@@ -47,7 +47,7 @@ def test_extension_draft_declares_its_kind(extension):
 @pytest.mark.parametrize("extension", NODE_EXTENSIONS, ids=extension_id)
 def test_extension_runnable_refines_its_draft(extension):
     assert issubclass(extension.draft, WorkflowModel)
-    assert issubclass(extension.runnable, extension.draft)
+    assert extension.runnable.model_fields.keys() == extension.draft.model_fields.keys()
 
 
 @pytest.mark.parametrize("extension", NODE_EXTENSIONS, ids=extension_id)

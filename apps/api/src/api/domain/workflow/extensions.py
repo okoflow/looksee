@@ -45,3 +45,12 @@ NODE_EXTENSIONS: tuple[NodeExtension, ...] = _load_node_extensions()
 LICENSED_FEATURES_BY_KIND: dict[str, str] = {
     extension.kind: extension.feature for extension in NODE_EXTENSIONS
 }
+
+
+def licensed_feature_of(node: WorkflowModel) -> str | None:
+    """The feature a commercial node needs, or None for an open node."""
+    for extension in NODE_EXTENSIONS:
+        if isinstance(node, extension.draft):
+            return extension.feature
+
+    return None

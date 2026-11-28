@@ -41,9 +41,12 @@ class ConditionModel(WorkflowModel):
         return None
 
 
-class EventKindCondition(ConditionModel):
+class _EventKindConditionFields(ConditionModel):
     field: Literal["event_kind"] = "event_kind"
     operator: Literal["is", "is_not"] = "is"
+
+
+class EventKindCondition(_EventKindConditionFields):
     value: EventKind | None = None
 
     def matches(self, event: DetectionEvent) -> bool:
@@ -58,9 +61,12 @@ class EventKindCondition(ConditionModel):
         return self.value
 
 
-class ObjectClassCondition(ConditionModel):
+class _ObjectClassConditionFields(ConditionModel):
     field: Literal["object_class"] = "object_class"
     operator: Literal["contains", "not_contains"] = "contains"
+
+
+class ObjectClassCondition(_ObjectClassConditionFields):
     value: str = Field(default="", max_length=256)
 
     def matches(self, event: DetectionEvent) -> bool:
@@ -109,11 +115,11 @@ IfElseCondition = Annotated[
 ]
 
 
-class RunnableEventKindCondition(EventKindCondition):
+class RunnableEventKindCondition(_EventKindConditionFields):
     value: EventKind
 
 
-class RunnableObjectClassCondition(ObjectClassCondition):
+class RunnableObjectClassCondition(_ObjectClassConditionFields):
     value: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=256)]
 
 
