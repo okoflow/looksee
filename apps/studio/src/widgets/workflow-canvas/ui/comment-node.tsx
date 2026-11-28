@@ -72,7 +72,7 @@ export function CommentNode({ data, id, selected }: NodeProps<CommentFlowNode>) 
       {isEditing ? (
         <textarea
           aria-label="Comment text"
-          className="nodrag nowheel block min-h-16 w-full resize-none bg-transparent p-3 pr-8 text-amber-900 text-sm outline-none placeholder:text-amber-900/35"
+          className="nodrag nowheel block min-h-16 w-full resize-none bg-transparent p-3 pr-8 text-sm text-amber-900 outline-none placeholder:text-amber-900/35"
           maxLength={TEXT_LIMITS.commentText}
           onBlur={handleBlur}
           onChange={handleChange}
@@ -82,7 +82,7 @@ export function CommentNode({ data, id, selected }: NodeProps<CommentFlowNode>) 
           value={draft}
         />
       ) : (
-        <p className="min-h-16 w-full whitespace-pre-wrap break-words p-3 pr-8 text-amber-900 text-sm">
+        <p className="min-h-16 w-full p-3 pr-8 text-sm break-words whitespace-pre-wrap text-amber-900">
           {data.text.length > 0 ? data.text : <span className="text-amber-900/35">Double-click to edit…</span>}
         </p>
       )}
@@ -90,7 +90,7 @@ export function CommentNode({ data, id, selected }: NodeProps<CommentFlowNode>) 
       <Button
         aria-label="Delete comment"
         className={cn(
-          "nodrag absolute top-1 right-1 text-amber-900/45 opacity-0 transition-opacity hover:bg-amber-900/10 hover:text-amber-900 group-hover/comment:opacity-100",
+          "nodrag absolute top-1 right-1 text-amber-900/45 opacity-0 transition-opacity group-hover/comment:opacity-100 hover:bg-amber-900/10 hover:text-amber-900",
           selected && "opacity-100"
         )}
         onClick={handleDelete}

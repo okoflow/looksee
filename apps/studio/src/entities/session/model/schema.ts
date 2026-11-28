@@ -25,8 +25,8 @@ export const setupSchema = z.object({
     .string()
     .min(8, "At least 8 characters")
     .max(256)
-    .regex(/[0-9]/, "At least one number")
-    .regex(/[A-Z]/, "At least one capital letter"),
+    .regex(/[0-9]/u, "At least one number")
+    .regex(/[A-Z]/u, "At least one capital letter"),
 });
 
 export type SessionUser = z.infer<typeof sessionUserSchema>;

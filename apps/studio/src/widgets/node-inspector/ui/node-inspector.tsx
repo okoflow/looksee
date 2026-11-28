@@ -38,7 +38,7 @@ export function NodeInspector() {
   };
 
   return (
-    <aside className="flex h-full w-editor-inspector shrink-0 flex-col overflow-hidden rounded-xl border bg-card">
+    <aside className="w-editor-inspector bg-card flex h-full shrink-0 flex-col overflow-hidden rounded-xl border">
       <NodeInspectorHeader description={definition.description} label={definition.label} onDelete={handleDelete} />
 
       <ScrollArea className="min-h-0 flex-1">

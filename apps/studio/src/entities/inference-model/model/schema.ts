@@ -6,13 +6,13 @@ export const modelIdSchema = z
   .string()
   .min(1)
   .max(64)
-  .regex(/^[a-z0-9_-]+$/);
+  .regex(/^[a-z0-9_-]+$/u);
 
 export const eventKindSchema = z
   .string()
   .min(1)
   .max(EVENT_KIND_MAX_LENGTH)
-  .regex(/^[A-Z][A-Z0-9_]*$/);
+  .regex(/^[A-Z][A-Z0-9_]*$/u);
 
 export const inferenceModelClassSchema = z.object({
   label: z.string().min(1).max(128),

@@ -18,7 +18,7 @@ export function ZoomControls() {
 
   return (
     <Panel
-      className="mr-[calc(var(--spacing-editor-inspector)_+_var(--spacing-editor-gutter)*2)] mb-editor-gutter flex items-center gap-1 rounded-md border bg-card p-1 shadow-xs"
+      className="mb-editor-gutter bg-card mr-[calc(var(--spacing-editor-inspector)_+_var(--spacing-editor-gutter)*2)] flex items-center gap-1 rounded-md border p-1 shadow-xs"
       position="bottom-right"
     >
       <Tooltip>

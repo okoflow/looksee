@@ -27,13 +27,13 @@ export function WorkflowAlerts({ workflowId }: WorkflowAlertsProps) {
 
   if (alerts.data === undefined) {
     return (
-      <div className="flex h-full items-center justify-center text-muted-foreground text-sm">Couldn't load alerts.</div>
+      <div className="text-muted-foreground flex h-full items-center justify-center text-sm">Couldn't load alerts.</div>
     );
   }
 
   if (alerts.data.length === 0) {
     return (
-      <div className="flex h-full items-center justify-center p-6 text-center text-muted-foreground text-sm">
+      <div className="text-muted-foreground flex h-full items-center justify-center p-6 text-center text-sm">
         No alerts yet. An Alert node records them here when the flow fires.
       </div>
     );
@@ -51,7 +51,7 @@ export function WorkflowAlerts({ workflowId }: WorkflowAlertsProps) {
 
           return (
             <li className="flex items-center gap-2 px-3 py-1.5" key={alert.id}>
-              <span className="shrink-0 font-mono text-muted-foreground text-xs">
+              <span className="text-muted-foreground shrink-0 font-mono text-xs">
                 {formatClockTime(alert.created_at)}
               </span>
 

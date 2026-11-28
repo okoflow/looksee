@@ -36,14 +36,14 @@ export function FlowNode({ data, selected }: NodeProps<FlowGraphNode>) {
 
   return (
     <div
-      className={cn("relative min-w-44 rounded-lg border bg-card text-card-foreground shadow-xs transition", {
-        "border-ring ring-3 ring-ring/40": selected,
+      className={cn("bg-card text-card-foreground relative min-w-44 rounded-lg border shadow-xs transition", {
+        "border-ring ring-ring/40 ring-3": selected,
       })}
     >
       {shouldShowTarget ? (
         <Handle
           aria-label={`${definition.label} input`}
-          className="size-2! border-2! border-background! bg-foreground!"
+          className="border-background! bg-foreground! size-2! border-2!"
           position={Position.Left}
           type="target"
         />
@@ -55,14 +55,14 @@ export function FlowNode({ data, selected }: NodeProps<FlowGraphNode>) {
         </div>
 
         <div className="flex min-w-0 flex-col">
-          <span className="truncate font-medium text-sm">{definition.label}</span>
+          <span className="truncate text-sm font-medium">{definition.label}</span>
 
-          <span className="truncate text-muted-foreground text-xs">{summarizeNodeData(config)}</span>
+          <span className="text-muted-foreground truncate text-xs">{summarizeNodeData(config)}</span>
         </div>
       </div>
 
       {shouldShowPortLabels ? (
-        <div className="pointer-events-none absolute inset-y-0 right-3 flex flex-col justify-center gap-1 font-semibold text-[10px] leading-none">
+        <div className="pointer-events-none absolute inset-y-0 right-3 flex flex-col justify-center gap-1 text-[10px] leading-none font-semibold">
           {policy.outputs.map((port) => {
             return port.label === undefined ? null : (
               <span className={PORT_LABEL_CLASSES[port.id]} key={port.id}>
@@ -79,7 +79,7 @@ export function FlowNode({ data, selected }: NodeProps<FlowGraphNode>) {
         return (
           <Handle
             aria-label={portAriaLabel(definition.label, port)}
-            className={cn("size-2! border-2! border-background!", PORT_HANDLE_CLASSES[port.id])}
+            className={cn("border-background! size-2! border-2!", PORT_HANDLE_CLASSES[port.id])}
             id={hasSingleOutput ? undefined : port.id}
             key={port.id}
             position={Position.Right}
@@ -92,7 +92,7 @@ export function FlowNode({ data, selected }: NodeProps<FlowGraphNode>) {
       {shouldShowLegacyOutput ? (
         <Handle
           aria-label={`${definition.label} legacy output`}
-          className="size-2! border-2! border-background! bg-foreground!"
+          className="border-background! bg-foreground! size-2! border-2!"
           isConnectable={false}
           position={Position.Right}
           type="source"

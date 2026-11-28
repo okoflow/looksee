@@ -45,7 +45,7 @@ export function PointsPad({
     <>
       <ShapeEditorSurface
         ariaLabel={ariaLabel}
-        className="rounded-md border bg-muted"
+        className="bg-muted rounded-md border"
         maxPoints={maxPoints}
         onChange={onChange}
         points={points}
@@ -63,7 +63,7 @@ export function PointsPad({
           Clear
         </Button>
 
-        <span className="ml-auto text-muted-foreground text-xs">{pointsLabel}</span>
+        <span className="text-muted-foreground ml-auto text-xs">{pointsLabel}</span>
       </div>
 
       <Button onClick={handleOpenPreview} size="sm" variant="outline">

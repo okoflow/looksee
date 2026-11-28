@@ -14,7 +14,7 @@ interface LiveEventFeedProps {
 export function LiveEventFeed({ items }: LiveEventFeedProps) {
   if (items.length === 0) {
     return (
-      <div className="flex h-full min-w-0 flex-1 items-center justify-center p-6 text-center text-muted-foreground text-sm">
+      <div className="text-muted-foreground flex h-full min-w-0 flex-1 items-center justify-center p-6 text-center text-sm">
         Events and alerts show up here while the camera runs.
       </div>
     );
@@ -28,7 +28,7 @@ export function LiveEventFeed({ items }: LiveEventFeedProps) {
 
           return (
             <li className="flex items-center gap-2 px-3 py-1.5" key={item.id}>
-              <span className="shrink-0 font-mono text-muted-foreground text-xs">{formatClockTime(item.ts)}</span>
+              <span className="text-muted-foreground shrink-0 font-mono text-xs">{formatClockTime(item.ts)}</span>
 
               <Badge variant={item.variant === "alert" ? "destructive" : "outline"}>
                 {item.variant === "alert" ? "Alert" : eventKindLabel(item.kind)}
