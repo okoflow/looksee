@@ -3,7 +3,8 @@
 import { Field } from "@/shared/ui/field";
 import { HintedFieldLabel } from "@/shared/ui/hint";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
-import { CREDENTIAL_TYPE_LABELS, type CredentialType, useCredentials } from "@/entities/credential";
+import type { CredentialType } from "@/entities/credential";
+import { CREDENTIAL_TYPE_LABELS, useCredentials } from "@/entities/credential";
 
 interface CredentialSelectFieldProps {
   id: string;

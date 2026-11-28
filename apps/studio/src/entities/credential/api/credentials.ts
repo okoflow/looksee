@@ -1,11 +1,6 @@
 import { api } from "@/shared/api";
-import {
-  type Credential,
-  type CredentialCreate,
-  type CredentialUpdate,
-  credentialSchema,
-  credentialsSchema,
-} from "../model/schema";
+import type { Credential, CredentialCreate, CredentialUpdate } from "../model/schema";
+import { credentialSchema, credentialsSchema } from "../model/schema";
 
 export const credentials = {
   async list(): Promise<Credential[]> {

@@ -1,13 +1,6 @@
 import type { Connection, Edge, Node } from "@xyflow/react";
-import {
-  type ConnectionVerdict,
-  effectiveOutputPortId,
-  NODE_ROLES,
-  type NodeData,
-  validateConnection,
-  type WorkflowEdgeBranch,
-  type WorkflowGraph,
-} from "@/entities/workflow";
+import type { ConnectionVerdict, NodeData, WorkflowEdgeBranch, WorkflowGraph } from "@/entities/workflow";
+import { effectiveOutputPortId, NODE_ROLES, validateConnection } from "@/entities/workflow";
 
 export const NODE_TYPE_KEY = "looksee";
 export const COMMENT_TYPE_KEY = "comment";

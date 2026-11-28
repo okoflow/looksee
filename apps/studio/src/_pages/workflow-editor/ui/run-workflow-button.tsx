@@ -6,7 +6,8 @@ import { Loader2Icon, PlayIcon, SquareIcon } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { Button } from "@/shared/ui/button";
-import { useUpdateWorkflow, validateGraph, type Workflow } from "@/entities/workflow";
+import type { Workflow } from "@/entities/workflow";
+import { useUpdateWorkflow, validateGraph } from "@/entities/workflow";
 import { startWebcamPublish, stopWebcamPublish } from "@/features/camera/publish-webcam";
 import { acknowledgeSaveAtom, focusNodeAtom, serializeGraphAtom } from "@/features/workflow/graph-editing";
 

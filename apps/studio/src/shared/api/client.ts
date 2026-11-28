@@ -1,4 +1,5 @@
-import ky, { type BeforeErrorState, isHTTPError, type KyInstance } from "ky";
+import type { BeforeErrorState, KyInstance } from "ky";
+import ky, { isHTTPError } from "ky";
 import { z } from "zod";
 import { getApiUrl } from "@/shared/config";
 

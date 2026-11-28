@@ -1,12 +1,14 @@
 "use client";
 
 import { AlertCircleIcon, Loader2Icon, VideoOffIcon } from "lucide-react";
-import { type PropsWithChildren, type RefObject, useEffect, useState } from "react";
+import type { PropsWithChildren, RefObject } from "react";
+import { useEffect, useState } from "react";
 import { assertNever } from "@/shared/lib/assert-never";
 import { cn } from "@/shared/lib/cn";
 import type { WhepSessionState } from "@/shared/lib/webrtc";
 import { Button } from "@/shared/ui/button";
-import { type ContainBox, fitContainBox } from "../lib/letterbox";
+import type { ContainBox } from "../lib/letterbox";
+import { fitContainBox } from "../lib/letterbox";
 import type { DetectionFrame } from "../model/messages";
 import { useWhepStream } from "../model/use-whep-stream";
 import { BoundingBoxOverlay } from "./bounding-box-overlay";

@@ -1,30 +1,16 @@
-import {
-  addEdge,
-  applyEdgeChanges,
-  applyNodeChanges,
-  type Connection,
-  type Edge,
-  type EdgeChange,
-  type NodeChange,
-  type XYPosition,
-} from "@xyflow/react";
-import { atom, createStore, type Getter, type Setter } from "jotai";
+import type { Connection, Edge, EdgeChange, NodeChange, XYPosition } from "@xyflow/react";
+import { addEdge, applyEdgeChanges, applyNodeChanges } from "@xyflow/react";
+import type { Getter, Setter } from "jotai";
+import { atom, createStore } from "jotai";
 import { selectAtom } from "jotai/utils";
 import { arraysShallowEqual } from "@/shared/lib/arrays-shallow-equal";
-import {
-  type CameraSourceNodeData,
-  getRuntimeModelIds,
-  getUpstreamCameraSource,
-  type NodeData,
-  type WorkflowGraph,
-} from "@/entities/workflow";
+import type { CameraSourceNodeData, NodeData, WorkflowGraph } from "@/entities/workflow";
+import { getRuntimeModelIds, getUpstreamCameraSource } from "@/entities/workflow";
 import { generateNodeId } from "../lib/node-id";
+import type { CommentFlowNode, EditorFlowNode, FlowGraphNode } from "./flow-graph";
 import {
   branchPresentation,
   COMMENT_TYPE_KEY,
-  type CommentFlowNode,
-  type EditorFlowNode,
-  type FlowGraphNode,
   isCommentFlowNode,
   isGraphFlowNode,
   NODE_TYPE_KEY,

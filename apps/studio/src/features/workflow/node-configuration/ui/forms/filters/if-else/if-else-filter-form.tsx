@@ -1,7 +1,8 @@
 "use client";
 
 import type { IfElseCondition } from "@/entities/workflow";
-import { DEFAULT_CONDITIONS, type IfElseConditionField } from "../../../../model/if-else";
+import type { IfElseConditionField } from "../../../../model/if-else";
+import { DEFAULT_CONDITIONS } from "../../../../model/if-else";
 import { SelectField } from "../../../fields/select-field";
 import type { NodeFormProps } from "../../../form-props";
 import { ConditionEditor } from "./condition-editor";

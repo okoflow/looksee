@@ -1,7 +1,8 @@
 "use client";
 
 import { TriangleAlertIcon, UploadIcon, VideoOffIcon } from "lucide-react";
-import { type ChangeEventHandler, useRef } from "react";
+import type { ChangeEventHandler } from "react";
+import { useRef } from "react";
 import { toast } from "sonner";
 import { cn } from "@/shared/lib/cn";
 import { formatBytes } from "@/shared/lib/format-bytes";
@@ -10,7 +11,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/shared/ui/empty";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { Spinner } from "@/shared/ui/spinner";
-import { type Asset, assetContentUrl, useAssets, useUploadAsset } from "@/entities/asset";
+import type { Asset } from "@/entities/asset";
+import { assetContentUrl, useAssets, useUploadAsset } from "@/entities/asset";
 
 const LOADING_TILE_KEYS = ["tile-1", "tile-2", "tile-3", "tile-4", "tile-5", "tile-6"];
 

@@ -1,7 +1,8 @@
 "use client";
 
 import { SearchIcon } from "lucide-react";
-import { type ChangeEventHandler, useState } from "react";
+import type { ChangeEventHandler } from "react";
+import { useState } from "react";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/shared/ui/input-group";
 import { ScrollArea } from "@/shared/ui/scroll-area";
 import { useEntitlements } from "@/entities/entitlement";

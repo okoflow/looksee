@@ -1,7 +1,8 @@
 "use client";
 
 import { PlusIcon } from "lucide-react";
-import { type PropsWithChildren, useState } from "react";
+import type { PropsWithChildren } from "react";
+import { useState } from "react";
 import { Button } from "@/shared/ui/button";
 import { SidebarTrigger } from "@/shared/ui/sidebar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";

@@ -1,4 +1,5 @@
-import { type ConnectionEdge, effectiveOutputPortId, validateConnection } from "./connection-rules";
+import type { ConnectionEdge } from "./connection-rules";
+import { effectiveOutputPortId, validateConnection } from "./connection-rules";
 import { buildAdjacencyMap, collectReachable } from "./graph-traversal";
 import type { NodeKind, WorkflowGraph } from "./schema";
 

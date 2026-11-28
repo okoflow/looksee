@@ -1,5 +1,6 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import { type ApiMutationOptions, useInvalidatingMutation } from "@/shared/api";
+import type { ApiMutationOptions } from "@/shared/api";
+import { useInvalidatingMutation } from "@/shared/api";
 import type { Asset } from "../model/schema";
 import { assets } from "./assets";
 

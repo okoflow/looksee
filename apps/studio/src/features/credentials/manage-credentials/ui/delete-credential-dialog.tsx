@@ -11,7 +11,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/shared/ui/alert-dialog";
-import { type Credential, useDeleteCredential } from "@/entities/credential";
+import type { Credential } from "@/entities/credential";
+import { useDeleteCredential } from "@/entities/credential";
 
 interface DeleteCredentialDialogProps {
   credential: Credential;

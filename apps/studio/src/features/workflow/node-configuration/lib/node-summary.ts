@@ -1,6 +1,7 @@
 import { assertNever } from "@/shared/lib/assert-never";
 import { eventKindLabel } from "@/entities/inference-model";
-import { type NodeData, SOURCE_TYPE_LABELS } from "@/entities/workflow";
+import type { NodeData } from "@/entities/workflow";
+import { SOURCE_TYPE_LABELS } from "@/entities/workflow";
 import type { NumericCondition } from "../model/if-else";
 
 export function summarizeNodeData(config: NodeData): string {

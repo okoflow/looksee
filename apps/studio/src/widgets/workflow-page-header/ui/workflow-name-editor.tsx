@@ -1,9 +1,11 @@
 "use client";
 
-import { type KeyboardEventHandler, useState } from "react";
+import type { KeyboardEventHandler } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { Input } from "@/shared/ui/input";
-import { useUpdateWorkflow, type Workflow } from "@/entities/workflow";
+import type { Workflow } from "@/entities/workflow";
+import { useUpdateWorkflow } from "@/entities/workflow";
 
 interface WorkflowNameEditorProps {
   workflow: Workflow;

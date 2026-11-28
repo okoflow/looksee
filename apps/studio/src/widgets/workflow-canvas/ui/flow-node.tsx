@@ -1,8 +1,10 @@
 "use client";
 
-import { Handle, type NodeProps, Position, useNodeConnections } from "@xyflow/react";
+import type { NodeProps } from "@xyflow/react";
+import { Handle, Position, useNodeConnections } from "@xyflow/react";
 import { cn } from "@/shared/lib/cn";
-import { NODE_POLICIES, type OutputPort, type OutputPortId } from "@/entities/workflow";
+import type { OutputPort, OutputPortId } from "@/entities/workflow";
+import { NODE_POLICIES } from "@/entities/workflow";
 import type { FlowGraphNode } from "@/features/workflow/graph-editing";
 import { getNodeDefinition, summarizeNodeData } from "@/features/workflow/node-configuration";
 

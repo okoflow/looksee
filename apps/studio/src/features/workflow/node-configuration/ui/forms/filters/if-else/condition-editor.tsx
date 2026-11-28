@@ -2,12 +2,8 @@
 
 import { assertNever } from "@/shared/lib/assert-never";
 import { EVENT_KIND_MAX_LENGTH, eventKindLabel } from "@/entities/inference-model";
-import {
-  CONFIDENCE_THRESHOLD_LIMITS,
-  DETECTION_COUNT_LIMITS,
-  type IfElseCondition,
-  TEXT_LIMITS,
-} from "@/entities/workflow";
+import type { IfElseCondition } from "@/entities/workflow";
+import { CONFIDENCE_THRESHOLD_LIMITS, DETECTION_COUNT_LIMITS, TEXT_LIMITS } from "@/entities/workflow";
 import { CONFIDENCE_THRESHOLD_STEP } from "../../../../config/node-catalog";
 import { normalizeEventKind } from "../../../../lib/event-kind";
 import { useModelCatalog } from "../../../../lib/use-model-catalog";

@@ -1,5 +1,6 @@
 import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type ApiMutationOptions, useInvalidatingMutation } from "@/shared/api";
+import type { ApiMutationOptions } from "@/shared/api";
+import { useInvalidatingMutation } from "@/shared/api";
 import type { Workflow, WorkflowCreate, WorkflowUpdate } from "../model/schema";
 import { workflows } from "./workflows";
 

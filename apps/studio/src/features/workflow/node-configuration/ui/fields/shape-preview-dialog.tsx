@@ -1,7 +1,8 @@
 "use client";
 
 import { Redo2Icon, Trash2Icon } from "lucide-react";
-import { type NormalizedPolygon, usePointsEditor } from "@/shared/lib/geometry";
+import type { NormalizedPolygon } from "@/shared/lib/geometry";
+import { usePointsEditor } from "@/shared/lib/geometry";
 import { Button } from "@/shared/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
 import { assetContentUrl } from "@/entities/asset";

@@ -1,6 +1,7 @@
 "use client";
 
-import { cva, type VariantProps } from "class-variance-authority";
+import type { VariantProps } from "class-variance-authority";
+import { cva } from "class-variance-authority";
 import { useMemo } from "react";
 import { cn } from "@/shared/lib/cn";
 import { Label } from "@/shared/ui/label";

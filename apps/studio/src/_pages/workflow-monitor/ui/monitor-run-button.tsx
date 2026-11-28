@@ -3,7 +3,8 @@
 import { Loader2Icon, PlayIcon, SquareIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/shared/ui/button";
-import { useUpdateWorkflow, type Workflow } from "@/entities/workflow";
+import type { Workflow } from "@/entities/workflow";
+import { useUpdateWorkflow } from "@/entities/workflow";
 import { startWebcamPublish, stopWebcamPublish } from "@/features/camera/publish-webcam";
 
 interface MonitorRunButtonProps {

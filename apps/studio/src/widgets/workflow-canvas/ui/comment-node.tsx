@@ -3,12 +3,14 @@
 import type { NodeProps } from "@xyflow/react";
 import { useSetAtom } from "jotai";
 import { XIcon } from "lucide-react";
-import { type ChangeEventHandler, type KeyboardEventHandler, useRef, useState } from "react";
+import type { ChangeEventHandler, KeyboardEventHandler } from "react";
+import { useRef, useState } from "react";
 import { cn } from "@/shared/lib/cn";
 import { useDraftState } from "@/shared/lib/use-draft-state";
 import { Button } from "@/shared/ui/button";
 import { TEXT_LIMITS } from "@/entities/workflow";
-import { type CommentFlowNode, deleteNodeAtom, updateCommentTextAtom } from "@/features/workflow/graph-editing";
+import type { CommentFlowNode } from "@/features/workflow/graph-editing";
+import { deleteNodeAtom, updateCommentTextAtom } from "@/features/workflow/graph-editing";
 
 export function CommentNode({ data, id, selected }: NodeProps<CommentFlowNode>) {
   const updateCommentText = useSetAtom(updateCommentTextAtom);

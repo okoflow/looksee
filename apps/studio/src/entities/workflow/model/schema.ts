@@ -3,6 +3,7 @@ import { isoTimestampSchema, uuidSchema } from "@/shared/api";
 import { normalizedPolygonSchema } from "@/shared/lib/geometry";
 import { alertSeveritySchema } from "@/entities/alert/@x/workflow";
 import { eventKindSchema, modelIdSchema } from "@/entities/inference-model/@x/workflow";
+import type { NumericLimits } from "./limits";
 import {
   ALERT_COOLDOWN_LIMITS,
   AREA_FRACTION_LIMITS,
@@ -11,7 +12,6 @@ import {
   DETECTION_COUNT_LIMITS,
   DURATION_SECONDS_LIMITS,
   INFERENCE_FPS_LIMITS,
-  type NumericLimits,
   TEXT_LIMITS,
   WEEKDAY_LIMITS,
 } from "./limits";
